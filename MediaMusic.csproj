@@ -14,6 +14,14 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
+  <!-- Exclude scratch files from build -->
+  <ItemGroup>
+    <Compile Remove="scratch\**" />
+    <Content Remove="scratch\**" />
+    <EmbeddedResource Remove="scratch\**" />
+    <None Remove="scratch\**" />
+  </ItemGroup>
+
   <!-- NuGet packages (versions verified 2026-06) -->
   <ItemGroup>
     <!-- Blazor host (transitively brings Photino.NET + WebView) -->

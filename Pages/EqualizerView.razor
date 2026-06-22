@@ -1,16 +1,721 @@
 @page "/eq"
+@using System.Text.Json
+@using MediaMusic.Data.Models
+@using MediaMusic.Data.Repositories
+@using MediaMusic.Services
+@using MediaMusic.Audio
+@inject EqualizerService Equalizer
+@inject EffectsService Effects
+@inject SettingsService Settings
+@inject EqPresetRepository PresetRepo
+@inject NavigationManager Nav
 
-<PageTitle>均衡器 — MediaMusic</PageTitle>
+<PageTitle>音频工程 - MediaMusic</PageTitle>
 
-<div class="flex h-full flex-col">
-    <div class="flex items-center justify-between border-b border-on-surface/10 px-4 py-3">
-        <h1 class="text-lg font-semibold">均衡器</h1>
-        <div class="flex gap-2 text-xs">
-            <NavLink class="hover:text-accent" href="/">返回</NavLink>
-            <NavLink class="hover:text-accent" href="/library">曲库</NavLink>
+<div class="eq-page">
+    <!-- Header Title Area -->
+    <div class="mb-6 flex justify-between items-start">
+        <div>
+            <h1 class="text-2xl font-bold text-white tracking-wide">音频工程</h1>
+            <p class="text-xs text-neutral-500 mt-1">配置全局播放动态与系统输出参数。</p>
+        </div>
+        <!-- Simple Top Action to return to Home -->
+        <button class="btn-top-nav cursor-pointer" @onclick='() => Nav.NavigateTo("/")'>
+            返回首页
+        </button>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Left Column: Equalizer & Pre-Gain -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+            <!-- 10-Band Graphic Equalizer -->
+            <div class="card p-6 rounded-2xl shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="text-purple p-1.5 rounded-lg bg-accent-purple-10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5h1.5m.75-6l3 12m-.75-12h1.5m.75 6l3-12m-.75 12h1.5m.75-6l3 12m-.75-12h1.5m.75 6l3-12M21 13.5h-1.5" />
+                            </svg>
+                        </div>
+                        <h2 class="text-base font-medium text-white">10段图形均衡器</h2>
+                    </div>
+
+                    <!-- Right Controls -->
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-neutral-500 font-medium">预设</span>
+                        
+                        <!-- Dropdown -->
+                        <div class="relative">
+                            <select class="preset-select text-xs font-semibold cursor-pointer text-white px-3 py-1.5 pr-8 rounded-lg appearance-none outline-none transition-colors"
+                                    value="@SelectedPresetId"
+                                    disabled="@(!EqEnabled)"
+                                    @onchange="OnPresetChange">
+                                @foreach (var p in Presets)
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                                <option value="-1">自定义</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-neutral-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Power Toggle Button -->
+                        <button class="w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer @(EqEnabled ? "btn-power-active text-purple" : "btn-power-inactive")"
+                                @onclick="ToggleEq" title="切换均衡器状态">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-6.364-6.364V3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sliders Grid -->
+                <div class="flex items-end justify-between gap-2 h-64 px-1 py-4 @(EqEnabled ? "" : "opacity-35") transition-opacity duration-300">
+                    @for (int i = 0; i < Frequencies.Length; i++)
+                    {
+                        var index = i;
+                        var valPercent = (BandGains[index] + 12.0) / 24.0 * 100.0;
+                        <div class="flex flex-col items-center flex-1 h-full justify-between">
+                            <!-- dB Value Label -->
+                            <span class="text-[11px] font-semibold @(EqEnabled ? "text-blue" : "text-neutral-500") min-h-[16px] select-none font-mono">
+                                @FormatGain(BandGains[index])
+                            </span>
+
+                            <!-- Slider Container -->
+                            <div class="relative flex flex-col items-center h-44 w-full group py-1">
+                                <!-- Background Track with Blue Fill -->
+                                <div class="absolute top-[6px] bottom-[6px] w-[5px] bg-dark-gray rounded-full overflow-hidden pointer-events-none">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-blue transition-all duration-75" style="height: @(valPercent)%;"></div>
+                                </div>
+                                <!-- Range Input -->
+                                <input type="range" min="-12" max="12" step="0.5" orient="vertical"
+                                       class="eq-slider w-full h-full cursor-pointer relative z-10"
+                                       value="@BandGains[index]"
+                                       disabled="@(!EqEnabled)"
+                                       @oninput="(e) => OnSliderInput(index, e)"
+                                       @onchange="SaveSliderGains" />
+                            </div>
+
+                            <!-- Frequency Label -->
+                            <span class="text-[11px] font-semibold text-neutral-400 select-none mt-1">
+                                @FormatFreq(Frequencies[index])
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Output Pre-Gain Card -->
+            <div class="card p-5 rounded-2xl shadow-lg flex items-center justify-between gap-6">
+                <div class="flex items-center gap-3 min-w-[200px]">
+                    <div class="w-10 h-10 rounded-full bg-dark-gray flex items-center justify-center text-neutral-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-white">输出前级增益</h3>
+                        <p class="text-[11px] text-neutral-500">调节全局增益以防止削波。</p>
+                    </div>
+                </div>
+
+                <!-- Slider Slider -->
+                <div class="flex-1 flex items-center py-2">
+                    <span class="text-[10px] text-neutral-500 select-none mr-2 font-mono">-12dB</span>
+                    <div class="flex-1 relative flex items-center h-6 group">
+                        @{
+                            var preGainPercent = (PreGain + 12.0) / 24.0 * 100.0;
+                        }
+                        <div class="absolute left-[7px] right-[7px] h-1.5 bg-dark-gray rounded-full overflow-hidden pointer-events-none">
+                            <div class="h-full bg-purple" style="width: @(preGainPercent)%"></div>
+                        </div>
+                        <input type="range" min="-12" max="12" step="0.5"
+                               class="custom-slider w-full h-full cursor-pointer relative z-10"
+                               value="@PreGain"
+                               @oninput="OnPreGainInput"
+                               @onchange="SavePreGain" />
+                    </div>
+                    <span class="text-[10px] text-neutral-500 select-none ml-2 font-mono">+12dB</span>
+                </div>
+
+                <!-- Value Badge -->
+                <div class="w-16 text-right">
+                    <span class="text-xs font-semibold text-white font-mono">@FormatPreGain(PreGain)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Playback Dynamics & System/Data -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+            <!-- Playback Dynamics Card -->
+            <div class="card p-6 rounded-2xl shadow-xl">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="text-purple">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3M4.5 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l-3 3m3-3l3 3" />
+                        </svg>
+                    </div>
+                    <h2 class="text-base font-medium text-white">播放动态</h2>
+                </div>
+
+                <div class="flex flex-col gap-5">
+                    <!-- 无缝播放 -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-white">无缝播放</h3>
+                            <p class="text-[11px] text-neutral-500">移除曲目间的停顿</p>
+                        </div>
+                        <button class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none @(GaplessEnabled ? "bg-purple" : "bg-dark-gray")"
+                                @onclick="ToggleGapless">
+                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out @(GaplessEnabled ? "translate-x-5" : "translate-x-0")"></span>
+                        </button>
+                    </div>
+
+                    <div class="h-px bg-white-02"></div>
+
+                    <!-- 交叉淡入淡出 -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h3 class="text-sm font-medium text-white">交叉淡入淡出</h3>
+                                <p class="text-[11px] text-neutral-500">平滑音轨过渡</p>
+                            </div>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-dark-gray text-purple border border-white-04 font-mono">
+                                @FormatCrossfadeMs(CrossfadeDurationSec)
+                            </span>
+                        </div>
+                        
+                        <!-- Horizontal Slider -->
+                        @{
+                            var crossfadePercent = CrossfadeDurationSec / 5.0 * 100.0;
+                        }
+                        <div class="flex items-center relative py-2">
+                            <span class="text-[10px] text-neutral-500 select-none mr-2 font-mono">关闭</span>
+                            <div class="flex-1 relative flex items-center h-6 group">
+                                <div class="absolute left-[7px] right-[7px] h-1.5 bg-dark-gray rounded-full overflow-hidden pointer-events-none">
+                                    <div class="h-full bg-purple" style="width: @(crossfadePercent)%"></div>
+                                </div>
+                                <input type="range" min="0" max="5" step="0.1"
+                                       class="custom-slider w-full h-full cursor-pointer relative z-10"
+                                       value="@CrossfadeDurationSec"
+                                       @oninput="OnCrossfadeInput"
+                                       @onchange="SaveCrossfade" />
+                            </div>
+                            <span class="text-[10px] text-neutral-500 select-none ml-2 font-mono">5秒</span>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-white-02"></div>
+
+                    <!-- 重放增益 -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-white">重放增益</h3>
+                            <p class="text-[11px] text-neutral-500">标准化音轨响度</p>
+                        </div>
+                        <button class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none @(ReplayGainEnabled ? "bg-purple" : "bg-dark-gray")"
+                                @onclick="ToggleReplayGain">
+                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out @(ReplayGainEnabled ? "translate-x-5" : "translate-x-0")"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System & Data Card -->
+            <div class="card p-6 rounded-2xl shadow-xl">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="text-purple">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" />
+                        </svg>
+                    </div>
+                    <h2 class="text-base font-medium text-white">系统与数据</h2>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <!-- 界面主题 -->
+                    <div class="flex items-center justify-between py-3.5 px-1.5">
+                        <div class="flex items-center gap-3">
+                            <div class="text-neutral-500">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.01-1.712a15.9 15.9 0 001.671-2.757m0 0a3.001 3.001 0 014.056-4.056m-4.056 4.056a3.001 3.001 0 004.056-4.056M6.637 10.07l-.215-.338a.5.5 0 00-.696-.121L4.31 10.53a.5.5 0 00-.121.696l.215.338m5.313-1.493L13.12 6.84a1.5 1.5 0 012.122 0l2.918 2.918a1.5 1.5 0 010 2.122l-3.379 3.379m-3.379-3.379l3.379 3.379m0 0a3 3 0 01-4.243 4.243l-1.07-1.07" />
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-white">界面主题</span>
+                        </div>
+                        <span class="text-xs text-neutral-400 font-medium">深色 / AMOLED</span>
+                    </div>
+
+                    <div class="h-px bg-white-02"></div>
+
+                    <!-- 元数据编辑器 -->
+                    <div class="flex items-center justify-between py-3.5 px-1.5 hover:bg-white-02 rounded-xl cursor-pointer transition-all group"
+                         @onclick='() => Nav.NavigateTo("/metadata")'>
+                        <div class="flex items-center gap-3">
+                            <div class="text-neutral-500 group-hover:text-purple transition-colors">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-white group-hover:text-purple transition-colors">元数据编辑器</span>
+                        </div>
+                        <div class="text-neutral-500 group-hover:text-purple transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-white-02"></div>
+
+                    <!-- 库文件夹 -->
+                    <div class="flex items-center justify-between py-3.5 px-1.5 hover:bg-white-02 rounded-xl cursor-pointer transition-all group"
+                         @onclick='() => Nav.NavigateTo("/settings")'>
+                        <div class="flex items-center gap-3">
+                            <div class="text-neutral-500 group-hover:text-purple transition-colors">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-white group-hover:text-purple transition-colors">库文件夹</span>
+                        </div>
+                        <span class="text-xs text-neutral-400 group-hover:text-neutral-300 font-medium transition-colors">2 个位置</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="flex-1 overflow-auto">
-        <EqualizerPanel />
-    </div>
 </div>
+
+@code {
+    private static readonly double[] Frequencies = EqualizerService.DefaultFrequencies;
+    
+    private bool EqEnabled = true;
+    private double[] BandGains = new double[10];
+    private double PreGain = 0.0;
+    private bool GaplessEnabled = true;
+    private double CrossfadeDurationSec = 2.5; // Updated to match mockup default 2500ms
+    private bool ReplayGainEnabled = false;
+    private long SelectedPresetId = -1;
+    private List<EqPreset> Presets = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // 1. Load presets from DB
+            var allPresets = await PresetRepo.GetAllAsync();
+            Presets = allPresets.ToList();
+
+            // 2. Load settings from SettingsService
+            var eqEnabledVal = await Settings.GetAsync<string>("eq_enabled", "true");
+            EqEnabled = eqEnabledVal == "true";
+
+            var preGainVal = await Settings.GetAsync<string>("pre_gain", "0.0");
+            if (double.TryParse(preGainVal, out var pg)) PreGain = pg;
+
+            var gaplessVal = await Settings.GetAsync<string>("gapless_enabled", "true");
+            GaplessEnabled = gaplessVal == "true";
+
+            var crossfadeVal = await Settings.GetAsync<string>("crossfade_duration_ms", "2500");
+            if (double.TryParse(crossfadeVal, out var cf)) CrossfadeDurationSec = cf / 1000.0;
+
+            var replayGainVal = await Settings.GetAsync<string>("replay_gain_enabled", "false");
+            ReplayGainEnabled = replayGainVal == "true";
+
+            var presetIdVal = await Settings.GetAsync<string>("eq_preset_id", "-1");
+            if (long.TryParse(presetIdVal, out var pid)) SelectedPresetId = pid;
+
+            // Load active band gains
+            var bandsJson = await Settings.GetAsync("eq_bands");
+            if (!string.IsNullOrEmpty(bandsJson))
+            {
+                var savedBands = JsonSerializer.Deserialize<List<EqBand>>(bandsJson);
+                if (savedBands != null && savedBands.Count == Frequencies.Length)
+                {
+                    for (int i = 0; i < Frequencies.Length; i++)
+                    {
+                        BandGains[i] = savedBands[i].Gain;
+                    }
+                }
+            }
+            else if (SelectedPresetId > 0)
+            {
+                await ApplyPresetBands(SelectedPresetId);
+            }
+            else
+            {
+                // default to "发烧级 'V' 型" preset or Flat
+                var vPreset = Presets.FirstOrDefault(p => p.Name.Contains("V"));
+                if (vPreset != null)
+                {
+                    SelectedPresetId = vPreset.Id;
+                    await ApplyPresetBands(vPreset.Id);
+                }
+                else
+                {
+                    var flatPreset = Presets.FirstOrDefault(p => p.Name == "Flat");
+                    if (flatPreset != null)
+                    {
+                        SelectedPresetId = flatPreset.Id;
+                        await ApplyPresetBands(flatPreset.Id);
+                    }
+                }
+            }
+
+            // Sync services
+            UpdateEqualizerService();
+            UpdateEffectsService();
+        }
+        catch (Exception)
+        {
+            SelectedPresetId = -1;
+        }
+    }
+
+    private async Task SaveSettingsAsync(string key, string value)
+    {
+        await Settings.SetAsync(key, value);
+    }
+
+    private async Task ToggleEq()
+    {
+        EqEnabled = !EqEnabled;
+        await SaveSettingsAsync("eq_enabled", EqEnabled ? "true" : "false");
+        UpdateEqualizerService();
+    }
+
+    private void OnSliderInput(int index, ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var val))
+        {
+            BandGains[index] = val;
+            SelectedPresetId = -1; // Custom preset
+            UpdateEqualizerService();
+        }
+    }
+
+    private async Task SaveSliderGains()
+    {
+        var bands = Frequencies.Select((f, idx) => new EqBand { Frequency = f, Gain = BandGains[idx] }).ToList();
+        var json = JsonSerializer.Serialize(bands);
+        await SaveSettingsAsync("eq_bands", json);
+        await SaveSettingsAsync("eq_preset_id", "-1");
+    }
+
+    private async Task OnPresetChange(ChangeEventArgs e)
+    {
+        if (long.TryParse(e.Value?.ToString(), out var id))
+        {
+            SelectedPresetId = id;
+            await SaveSettingsAsync("eq_preset_id", id.ToString());
+            if (id > 0)
+            {
+                await ApplyPresetBands(id);
+            }
+            else if (id == 0)
+            {
+                for (int i = 0; i < BandGains.Length; i++)
+                {
+                    BandGains[i] = 0.0;
+                }
+                await SaveSliderGains();
+                UpdateEqualizerService();
+            }
+        }
+    }
+
+    private async Task ApplyPresetBands(long presetId)
+    {
+        var preset = Presets.FirstOrDefault(p => p.Id == presetId);
+        if (preset != null)
+        {
+            var bands = await PresetRepo.LoadBandsAsync(presetId);
+            var bandsList = bands.ToList();
+            if (bandsList.Count == Frequencies.Length)
+            {
+                for (int i = 0; i < Frequencies.Length; i++)
+                {
+                    BandGains[i] = bandsList[i].Gain;
+                }
+            }
+            else
+            {
+                try
+                {
+                    var fallbackBands = JsonSerializer.Deserialize<List<EqBand>>(preset.Bands);
+                    if (fallbackBands != null)
+                    {
+                        for (int i = 0; i < Math.Min(Frequencies.Length, fallbackBands.Count); i++)
+                        {
+                            BandGains[i] = fallbackBands[i].Gain;
+                        }
+                    }
+                }
+                catch { }
+            }
+            var bandsToSave = Frequencies.Select((f, idx) => new EqBand { Frequency = f, Gain = BandGains[idx] }).ToList();
+            var json = JsonSerializer.Serialize(bandsToSave);
+            await SaveSettingsAsync("eq_bands", json);
+            UpdateEqualizerService();
+        }
+    }
+
+    private void UpdateEqualizerService()
+    {
+        if (EqEnabled)
+        {
+            var bands = Frequencies.Select((f, idx) => new EqBand { Frequency = f, Gain = BandGains[idx] });
+            Equalizer.ApplyBands(bands);
+        }
+        else
+        {
+            Equalizer.Disable();
+        }
+    }
+
+    private void OnPreGainInput(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var val))
+        {
+            PreGain = val;
+        }
+    }
+
+    private async Task SavePreGain()
+    {
+        await SaveSettingsAsync("pre_gain", PreGain.ToString("F1"));
+    }
+
+    private async Task ToggleGapless()
+    {
+        GaplessEnabled = !GaplessEnabled;
+        await SaveSettingsAsync("gapless_enabled", GaplessEnabled ? "true" : "false");
+    }
+
+    private void OnCrossfadeInput(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var val))
+        {
+            CrossfadeDurationSec = val;
+            UpdateEffectsService();
+        }
+    }
+
+    private async Task SaveCrossfade()
+    {
+        var ms = (int)(CrossfadeDurationSec * 1000);
+        await SaveSettingsAsync("crossfade_duration_ms", ms.ToString());
+    }
+
+    private void UpdateEffectsService()
+    {
+        Effects.CrossfadeMs = (int)(CrossfadeDurationSec * 1000);
+    }
+
+    private async Task ToggleReplayGain()
+    {
+        ReplayGainEnabled = !ReplayGainEnabled;
+        await SaveSettingsAsync("replay_gain_enabled", ReplayGainEnabled ? "true" : "false");
+    }
+
+    private static string FormatFreq(double f) => f >= 1000 ? $"{f / 1000:F0}k" : $"{f:F0}";
+
+    private static string FormatGain(double val)
+    {
+        if (val == 0) return "0";
+        string format = val % 1 == 0 ? "F0" : "F1";
+        return val > 0 ? $"+{val.ToString(format)}" : val.ToString(format);
+    }
+
+    private static string FormatPreGain(double val)
+    {
+        string format = val % 1 == 0 ? "F0" : "F1";
+        string sign = val > 0 ? "+" : "";
+        return $"{sign}{val.ToString(format)} dB";
+    }
+
+    private static string FormatCrossfadeMs(double seconds)
+    {
+        var ms = (int)Math.Round(seconds * 1000);
+        return ms > 0 ? $"{ms}ms" : "关闭";
+    }
+}
+
+<style>
+    .eq-page {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 28px 36px;
+        color: #ffffff;
+        overflow-y: auto;
+        background: #0a0b0e;
+        scrollbar-width: none;
+    }
+    .eq-page::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Vertical range input custom styles */
+    .eq-slider {
+        -webkit-appearance: slider-vertical;
+        width: 16px;
+        height: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        margin: 0;
+    }
+    .eq-slider::-webkit-slider-runnable-track {
+        background: transparent;
+        border: none;
+    }
+    .eq-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 3.5px solid #0084ff;
+        box-shadow: 0 2px 6px rgba(0, 132, 255, 0.4);
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .eq-slider:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+    }
+    .eq-slider:disabled::-webkit-slider-thumb {
+        border-color: #525252;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+
+    /* Horizontal range input custom styles */
+    .custom-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        margin: 0;
+    }
+    .custom-slider::-webkit-slider-runnable-track {
+        background: transparent;
+        border: none;
+    }
+    .custom-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 3.5px solid #a855f7;
+        box-shadow: 0 2px 6px rgba(168, 85, 247, 0.4);
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .custom-slider:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+    }
+
+    /* Preset select styling custom override */
+    .preset-select {
+        background-color: #1e1f29 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px;
+        padding: 6px 32px 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none;
+        transition: border-color 0.2s;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 8px center !important;
+        background-repeat: no-repeat !important;
+        background-size: 16px !important;
+    }
+    .preset-select:focus {
+        border-color: #a855f7 !important;
+    }
+    .preset-select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .preset-select option {
+        background-color: #1e1f29 !important;
+        color: #ffffff !important;
+    }
+
+    /* Custom utility classes to bypass uncompiled Tailwind classes */
+    .card {
+        background-color: #12131a !important;
+        border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    }
+    .bg-dark-gray {
+        background-color: #1e1f29 !important;
+    }
+    .bg-blue {
+        background-color: #0084ff !important;
+    }
+    .bg-purple {
+        background-color: #a855f7 !important;
+    }
+    .bg-white-02 {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+    }
+    .bg-accent-purple-10 {
+        background-color: rgba(168, 85, 247, 0.1) !important;
+    }
+    .text-purple {
+        color: #a855f7 !important;
+    }
+    .text-blue {
+        color: #0084ff !important;
+    }
+    .border-white-04 {
+        border-color: rgba(255, 255, 255, 0.04) !important;
+    }
+    .btn-power-active {
+        background-color: rgba(168, 85, 247, 0.15) !important;
+        border-color: rgba(168, 85, 247, 0.4) !important;
+        color: #a855f7 !important;
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.25) !important;
+    }
+    .btn-power-inactive {
+        background-color: #1e1f29 !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+        color: #737373 !important;
+    }
+    .btn-power-inactive:hover {
+        color: #d4d4d4 !important;
+    }
+
+    .btn-top-nav {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #d4d4d4;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-top-nav:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+</style>

@@ -13,7 +13,7 @@ public sealed class EqualizerService
 
     // Standard 10-band frequencies (Hz). PRD requires 10+ bands.
     public static readonly double[] DefaultFrequencies =
-        { 60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000 };
+        { 32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
 
     public EqualizerService(BassEngine engine, ILogger<EqualizerService> logger)
     {

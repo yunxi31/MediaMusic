@@ -13,9 +13,9 @@ public sealed class SeedData
 {
     private static readonly EqBand[] DefaultBands =
     {
-        new() { Frequency = 60 }, new() { Frequency = 170 }, new() { Frequency = 310 },
-        new() { Frequency = 600 }, new() { Frequency = 1000 }, new() { Frequency = 3000 },
-        new() { Frequency = 6000 }, new() { Frequency = 12000 }, new() { Frequency = 14000 },
+        new() { Frequency = 32 }, new() { Frequency = 64 }, new() { Frequency = 125 },
+        new() { Frequency = 250 }, new() { Frequency = 500 }, new() { Frequency = 1000 },
+        new() { Frequency = 2000 }, new() { Frequency = 4000 }, new() { Frequency = 8000 },
         new() { Frequency = 16000 }
     };
 
@@ -24,7 +24,8 @@ public sealed class SeedData
         ("Flat",        new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }),
         ("Rock",        new double[] { 4, 3, 2, 0, -1, 1, 3, 4, 4, 4 }),
         ("Bass Boost",  new double[] { 6, 5, 4, 2, 0, 0, 0, 0, 0, 0 }),
-        ("Classical",   new double[] { 3, 2, 1, 0, -1, -1, 0, 2, 3, 3 })
+        ("Classical",   new double[] { 3, 2, 1, 0, -1, -1, 0, 2, 3, 3 }),
+        ("发烧级 'V' 型", new double[] { 5, 3.5, 1.5, -1, -2.5, -2, 0, 2, 4, 5 })
     };
 
     /// <summary>Inserts built-in presets only if the table is currently empty.</summary>
