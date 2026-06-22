@@ -135,32 +135,257 @@
             }
             else if (ActiveTab == "shortcuts")
             {
-                <div class="panel-header">
-                    <h2>快捷键 (Shortcuts)</h2>
+                <div class="panel-header shortcuts-header">
+                    <h2>快捷键配置 (Shortcuts)</h2>
+                    <p class="panel-subtitle">自定义您的高保真音频工作流。全局快捷键允许在 MediaMusic 后台运行时进行控制。</p>
                 </div>
-                <div class="panel-content">
-                    <p class="text-xs text-neutral-500 mb-6">配置和修改全局播放快捷键，提升操作效率。</p>
-                    <div class="shortcuts-grid">
-                        <div class="shortcut-row">
-                            <span class="shortcut-label">播放 / 暂停</span>
-                            <span class="shortcut-key">Space</span>
+                
+                <div class="panel-content shortcuts-panel-content">
+                    <!-- Global Hotkeys Card -->
+                    <div class="global-hotkeys-card">
+                        <div class="card-left">
+                            <div class="keyboard-icon-container">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+                                    <line x1="6" y1="8" x2="6.01" y2="8" />
+                                    <line x1="10" y1="8" x2="10.01" y2="8" />
+                                    <line x1="14" y1="8" x2="14.01" y2="8" />
+                                    <line x1="18" y1="8" x2="18.01" y2="8" />
+                                    <line x1="6" y1="12" x2="6.01" y2="12" />
+                                    <line x1="18" y1="12" x2="18.01" y2="12" />
+                                    <rect x="6" y="16" width="12" height="2" rx="0.5" />
+                                    <line x1="10" y1="12" x2="14" y2="12" />
+                                </svg>
+                            </div>
+                            <div class="card-info">
+                                <span class="card-title">启用全局快捷键 (Enable Global Hotkeys)</span>
+                                <span class="card-description">允许MediaMusic拦截操作系统中的快捷键命令。</span>
+                            </div>
                         </div>
-                        <div class="shortcut-row">
-                            <span class="shortcut-label">下一首</span>
-                            <span class="shortcut-key">Ctrl + Right</span>
+                        <div class="card-right">
+                            <button class="toggle-switch @(GlobalHotkeysEnabled ? "on" : "")" @onclick="ToggleGlobalHotkeys" title="启用全局快捷键">
+                                <span class="toggle-thumb"></span>
+                            </button>
                         </div>
-                        <div class="shortcut-row">
-                            <span class="shortcut-label">上一首</span>
-                            <span class="shortcut-key">Ctrl + Left</span>
+                    </div>
+
+                    <!-- Playback Controls -->
+                    <div class="shortcuts-section">
+                        <div class="section-title-row">
+                            <span class="section-icon">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+                                </svg>
+                            </span>
+                            <span class="section-title">播放控制 (Playback Controls)</span>
+                            <div class="section-divider"></div>
                         </div>
-                        <div class="shortcut-row">
-                            <span class="shortcut-label">音量增加</span>
-                            <span class="shortcut-key">Ctrl + Up</span>
+                        
+                        <div class="shortcut-cards-grid">
+                            <div class="shortcut-card @(recordingKey == "play_pause" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("play_pause")' @onkeydown="HandleKeyDown">
+                                <div class="card-label-area">
+                                    <span class="shortcut-icon">
+                                        <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M6 19h3V5H6v14zm5-14v14l9-7-9-7z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="shortcut-name">播放 / 暂停</span>
+                                </div>
+                                <div class="shortcut-keys-area">
+                                    @if (recordingKey == "play_pause")
+                                    {
+                                        <span class="recording-prompt">请按下快捷键...</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var key in SplitKeys(ShortcutPlayPause))
+                                        {
+                                            <span class="key-cap">@key</span>
+                                            @if (key != SplitKeys(ShortcutPlayPause).Last())
+                                            {
+                                                <span class="key-plus">+</span>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="shortcut-card @(recordingKey == "next" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("next")' @onkeydown="HandleKeyDown">
+                                <div class="card-label-area">
+                                    <span class="shortcut-icon">
+                                        <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="shortcut-name">下一首</span>
+                                </div>
+                                <div class="shortcut-keys-area">
+                                    @if (recordingKey == "next")
+                                    {
+                                        <span class="recording-prompt">请按下快捷键...</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var key in SplitKeys(ShortcutNext))
+                                        {
+                                            <span class="key-cap">@key</span>
+                                            @if (key != SplitKeys(ShortcutNext).Last())
+                                            {
+                                                <span class="key-plus">+</span>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="shortcut-card @(recordingKey == "prev" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("prev")' @onkeydown="HandleKeyDown">
+                                <div class="card-label-area">
+                                    <span class="shortcut-icon">
+                                        <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M11.5 12L20 18V6l-8.5 6zM6 6h2v12H6V6z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="shortcut-name">上一首</span>
+                                </div>
+                                <div class="shortcut-keys-area">
+                                    @if (recordingKey == "prev")
+                                    {
+                                        <span class="recording-prompt">请按下快捷键...</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var key in SplitKeys(ShortcutPrev))
+                                        {
+                                            <span class="key-cap">@key</span>
+                                            @if (key != SplitKeys(ShortcutPrev).Last())
+                                            {
+                                                <span class="key-plus">+</span>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="shortcut-card-empty"></div>
                         </div>
-                        <div class="shortcut-row">
-                            <span class="shortcut-label">音量减少</span>
-                            <span class="shortcut-key">Ctrl + Down</span>
+                    </div>
+
+                    <!-- System Controls -->
+                    <div class="shortcuts-section">
+                        <div class="section-title-row">
+                            <span class="section-icon">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                                    <line x1="9" y1="3" x2="9" y2="21" />
+                                    <line x1="15" y1="3" x2="15" y2="21" />
+                                </svg>
+                            </span>
+                            <span class="section-title">系统控制 (System Controls)</span>
+                            <div class="section-divider"></div>
                         </div>
+                        
+                        <div class="shortcut-cards-grid">
+                            <div class="shortcut-card @(recordingKey == "vol_up" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("vol_up")' @onkeydown="HandleKeyDown">
+                                <div class="card-label-area">
+                                    <span class="shortcut-icon">
+                                        <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+                                            <line x1="16" y1="12" x2="22" y2="12"></line>
+                                            <line x1="19" y1="9" x2="19" y2="15"></line>
+                                        </svg>
+                                    </span>
+                                    <span class="shortcut-name">音量增大</span>
+                                </div>
+                                <div class="shortcut-keys-area">
+                                    @if (recordingKey == "vol_up")
+                                    {
+                                        <span class="recording-prompt">请按下快捷键...</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var key in SplitKeys(ShortcutVolUp))
+                                        {
+                                            <span class="key-cap">@key</span>
+                                            @if (key != SplitKeys(ShortcutVolUp).Last())
+                                            {
+                                                <span class="key-plus">+</span>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="shortcut-card @(recordingKey == "vol_down" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("vol_down")' @onkeydown="HandleKeyDown">
+                                <div class="card-label-area">
+                                    <span class="shortcut-icon">
+                                        <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+                                            <line x1="16" y1="12" x2="22" y2="12"></line>
+                                        </svg>
+                                    </span>
+                                    <span class="shortcut-name">音量减小</span>
+                                </div>
+                                <div class="shortcut-keys-area">
+                                    @if (recordingKey == "vol_down")
+                                    {
+                                        <span class="recording-prompt">请按下快捷键...</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var key in SplitKeys(ShortcutVolDown))
+                                        {
+                                            <span class="key-cap">@key</span>
+                                            @if (key != SplitKeys(ShortcutVolDown).Last())
+                                            {
+                                                <span class="key-plus">+</span>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="shortcut-card @(recordingKey == "toggle_mini" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("toggle_mini")' @onkeydown="HandleKeyDown">
+                                <div class="card-label-area">
+                                    <span class="shortcut-icon">
+                                        <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <rect x="12" y="12" width="7" height="7" rx="1" ry="1" fill="currentColor"></rect>
+                                        </svg>
+                                    </span>
+                                    <span class="shortcut-name">切换迷你播放器</span>
+                                </div>
+                                <div class="shortcut-keys-area">
+                                    @if (recordingKey == "toggle_mini")
+                                    {
+                                        <span class="recording-prompt">请按下快捷键...</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var key in SplitKeys(ShortcutToggleMini))
+                                        {
+                                            <span class="key-cap">@key</span>
+                                            @if (key != SplitKeys(ShortcutToggleMini).Last())
+                                            {
+                                                <span class="key-plus">+</span>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="shortcut-card-empty"></div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Row -->
+                    <div class="reset-row">
+                        <button class="reset-btn" @onclick="ResetShortcutsToDefault">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                            </svg>
+                            恢复默认 (Reset to Default)
+                        </button>
                     </div>
                 </div>
             }
@@ -264,22 +489,43 @@
     // Appearance state
     private string ThemeName = "dark";
 
+    // Shortcut states
+    private bool GlobalHotkeysEnabled = true;
+    private string ShortcutPlayPause = "Space";
+    private string ShortcutNext = "Ctrl + Right";
+    private string ShortcutPrev = "Ctrl + Left";
+    private string ShortcutVolUp = "Alt + Up";
+    private string ShortcutVolDown = "Alt + Down";
+    private string ShortcutToggleMini = "Ctrl + M";
+    
+    private string recordingKey = "";
+
     protected override async Task OnInitializedAsync()
     {
         // Load Settings
-        OutputDevice = await Settings.GetAsync<string>("output_device", "System Default (WASAPI)");
+        OutputDevice = await Settings.GetAsync<string>("output_device", "System Default (WASAPI)") ?? "System Default (WASAPI)";
         BufferSize = await Settings.GetAsync<int>("buffer_size", 512);
 
-        var gaplessVal = await Settings.GetAsync<string>("gapless_enabled", "true");
+        var gaplessVal = await Settings.GetAsync<string>("gapless_enabled", "true") ?? "true";
         GaplessEnabled = gaplessVal == "true";
 
-        var crossfadeVal = await Settings.GetAsync<string>("crossfade_duration_ms", "8");
+        var crossfadeVal = await Settings.GetAsync<string>("crossfade_duration_ms", "8") ?? "8";
         if (int.TryParse(crossfadeVal, out var cf))
         {
             CrossfadeDurationMs = cf;
         }
 
-        ThemeName = await Settings.GetAsync<string>("theme", "dark");
+        ThemeName = await Settings.GetAsync<string>("theme", "dark") ?? "dark";
+
+        var globalHotkeysVal = await Settings.GetAsync("global_hotkeys_enabled", "true") ?? "true";
+        GlobalHotkeysEnabled = globalHotkeysVal == "true";
+
+        ShortcutPlayPause = await Settings.GetAsync("shortcut_play_pause", "Space") ?? "Space";
+        ShortcutNext = await Settings.GetAsync("shortcut_next", "Ctrl + Right") ?? "Ctrl + Right";
+        ShortcutPrev = await Settings.GetAsync("shortcut_prev", "Ctrl + Left") ?? "Ctrl + Left";
+        ShortcutVolUp = await Settings.GetAsync("shortcut_vol_up", "Alt + Up") ?? "Alt + Up";
+        ShortcutVolDown = await Settings.GetAsync("shortcut_vol_down", "Alt + Down") ?? "Alt + Down";
+        ShortcutToggleMini = await Settings.GetAsync("shortcut_toggle_mini", "Ctrl + M") ?? "Ctrl + M";
     }
 
     private async Task OnDeviceChange(ChangeEventArgs e)
@@ -350,6 +596,111 @@
     private async Task Minimize() => await JS.InvokeVoidAsync("mediamusic.window.minimize");
     private async Task Maximize() => await JS.InvokeVoidAsync("mediamusic.window.maximize");
     private async Task Close() => await JS.InvokeVoidAsync("mediamusic.window.close");
+
+    private async Task ToggleGlobalHotkeys()
+    {
+        GlobalHotkeysEnabled = !GlobalHotkeysEnabled;
+        await Settings.SetAsync("global_hotkeys_enabled", GlobalHotkeysEnabled ? "true" : "false");
+    }
+
+    private void StartRecording(string key)
+    {
+        recordingKey = key;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrEmpty(recordingKey)) return;
+
+        // Ignore modifier keys alone
+        if (e.Key == "Control" || e.Key == "Shift" || e.Key == "Alt" || e.Key == "Meta")
+            return;
+
+        if (e.Key == "Escape")
+        {
+            recordingKey = "";
+            return;
+        }
+
+        // Build key combination string
+        var parts = new List<string>();
+        if (e.CtrlKey) parts.Add("Ctrl");
+        if (e.AltKey) parts.Add("Alt");
+        if (e.ShiftKey) parts.Add("Shift");
+
+        // Format key name nicely
+        var mainKey = e.Key;
+        if (mainKey == " ") mainKey = "Space";
+        else if (mainKey == "ArrowUp") mainKey = "Up";
+        else if (mainKey == "ArrowDown") mainKey = "Down";
+        else if (mainKey == "ArrowLeft") mainKey = "Left";
+        else if (mainKey == "ArrowRight") mainKey = "Right";
+        else if (mainKey.Length == 1) mainKey = mainKey.ToUpper();
+
+        parts.Add(mainKey);
+
+        var combination = string.Join(" + ", parts);
+
+        // Update state and save
+        await SaveShortcut(recordingKey, combination);
+        recordingKey = "";
+    }
+
+    private async Task SaveShortcut(string keyType, string combination)
+    {
+        switch (keyType)
+        {
+            case "play_pause":
+                ShortcutPlayPause = combination;
+                await Settings.SetAsync("shortcut_play_pause", combination);
+                break;
+            case "next":
+                ShortcutNext = combination;
+                await Settings.SetAsync("shortcut_next", combination);
+                break;
+            case "prev":
+                ShortcutPrev = combination;
+                await Settings.SetAsync("shortcut_prev", combination);
+                break;
+            case "vol_up":
+                ShortcutVolUp = combination;
+                await Settings.SetAsync("shortcut_vol_up", combination);
+                break;
+            case "vol_down":
+                ShortcutVolDown = combination;
+                await Settings.SetAsync("shortcut_vol_down", combination);
+                break;
+            case "toggle_mini":
+                ShortcutToggleMini = combination;
+                await Settings.SetAsync("shortcut_toggle_mini", combination);
+                break;
+        }
+    }
+
+    private async Task ResetShortcutsToDefault()
+    {
+        GlobalHotkeysEnabled = true;
+        ShortcutPlayPause = "Space";
+        ShortcutNext = "Ctrl + Right";
+        ShortcutPrev = "Ctrl + Left";
+        ShortcutVolUp = "Alt + Up";
+        ShortcutVolDown = "Alt + Down";
+        ShortcutToggleMini = "Ctrl + M";
+
+        await Settings.SetAsync("global_hotkeys_enabled", "true");
+        await Settings.SetAsync("shortcut_play_pause", "Space");
+        await Settings.SetAsync("shortcut_next", "Ctrl + Right");
+        await Settings.SetAsync("shortcut_prev", "Ctrl + Left");
+        await Settings.SetAsync("shortcut_vol_up", "Alt + Up");
+        await Settings.SetAsync("shortcut_vol_down", "Alt + Down");
+        await Settings.SetAsync("shortcut_toggle_mini", "Ctrl + M");
+    }
+
+    private List<string> SplitKeys(string shortcut)
+    {
+        if (string.IsNullOrEmpty(shortcut)) return new List<string>();
+        return shortcut.Split(new[] { " + " }, StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
 }
 
 <style>
@@ -668,34 +1019,205 @@
         pointer-events: none;
     }
 
-    /* Shortcuts Tab */
-    .shortcuts-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+    /* Shortcuts Tab Premium Design */
+    .shortcuts-header h2 {
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 4px !important;
     }
-    .shortcut-row {
+    .shortcuts-header h2::after {
+        display: none !important;
+    }
+    .panel-subtitle {
+        font-size: 11px;
+        color: #71717a;
+        margin: 0;
+        line-height: 1.6;
+    }
+    .shortcuts-panel-content {
+        max-width: 620px !important;
+        gap: 20px !important;
+    }
+    .global-hotkeys-card {
+        background-color: #121319;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 16px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 14px;
+        margin-bottom: 12px;
+    }
+    .card-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .keyboard-icon-container {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background-color: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #c084fc;
+    }
+    .card-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    .card-description {
+        font-size: 11px;
+        color: #71717a;
+    }
+    .shortcuts-section {
+        margin-bottom: 8px;
+    }
+    .section-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .section-icon {
+        color: #c084fc;
+        display: flex;
+        align-items: center;
+    }
+    .section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #c084fc;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    .section-divider {
+        flex: 1;
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.08);
+        margin-left: 12px;
+    }
+    .shortcut-cards-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .shortcut-card {
         background-color: #121319;
         border: 1px solid rgba(255, 255, 255, 0.03);
         border-radius: 8px;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        outline: none;
+        user-select: none;
     }
-    .shortcut-label {
+    .shortcut-card:hover {
+        background-color: #161720;
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+    .shortcut-card:focus, .shortcut-card.recording {
+        border-color: #a855f7;
+        box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 12px rgba(168, 85, 247, 0.15);
+        background-color: #151224;
+    }
+    .card-label-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .shortcut-icon {
+        color: #71717a;
+        display: flex;
+        align-items: center;
+    }
+    .shortcut-icon-svg {
+        width: 14px;
+        height: 14px;
+        color: #8e8f9c;
+    }
+    .shortcut-card:hover .shortcut-icon-svg {
+        color: #c084fc;
+    }
+    .shortcut-name {
         font-size: 12px;
         font-weight: 500;
-        color: #a3a3a3;
+        color: #e4e4e7;
     }
-    .shortcut-key {
+    .shortcut-keys-area {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .recording-prompt {
         font-size: 11px;
-        font-family: ui-monospace, monospace;
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #e5e5e5;
-        padding: 3px 8px;
+        color: #c084fc;
+        font-weight: 500;
+        animation: pulse 1.5s infinite;
+    }
+    .key-cap {
+        font-size: 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 600;
+        background-color: #1c1d24;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+        color: #e4e4e7;
+        padding: 2px 6px;
         border-radius: 4px;
+        min-width: 20px;
+        text-align: center;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+    }
+    .key-plus {
+        font-size: 10px;
+        color: #52525b;
+        font-weight: 500;
+        margin: 0 1px;
+    }
+    .shortcut-card-empty {
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .reset-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+        margin-bottom: 24px;
+    }
+    .reset-btn {
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #e4e4e7;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .reset-btn:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #ffffff;
+    }
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
     }
 
     /* Library Tab */
