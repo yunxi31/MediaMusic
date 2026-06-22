@@ -4,223 +4,104 @@
 @inject TrackRepository TrackRepo
 @implements IDisposable
 
-<PageTitle>MediaMusic — 首页</PageTitle>
+<PageTitle>MediaMusic - 首页</PageTitle>
 
-<div class="relative w-full h-full overflow-y-auto scrollbar-hide bg-background text-on-surface p-8 select-none z-10">
-    @* Ambient background glow from album art/neon purple *@
-    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-neon-purple/5 blur-[120px]"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] rounded-full bg-indigo-500/5 blur-[100px]"></div>
-    </div>
+<div class="home-page">
+    <div class="home-glow home-glow-a"></div>
+    <div class="home-glow home-glow-b"></div>
 
-    <div class="relative z-10 space-y-8 max-w-7xl mx-auto">
-        @* ── Header Greeting area ── *@
-        <div class="flex items-center justify-between">
-            <div class="space-y-1">
-                <span class="inline-flex items-center text-[9px] font-extrabold tracking-widest px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase shadow-sm">
-                    HI-RES AUDIO
-                </span>
-                <h1 class="text-2xl font-bold tracking-wide text-gray-100">@Greeting，听友</h1>
+    <div class="home-inner">
+        <header class="home-header">
+            <div>
+                <span class="hires-badge">HI-RES AUDIO</span>
+                <h1>@Greeting，听友</h1>
             </div>
-            
-            <div class="flex items-center gap-4">
-                @* Notification Bell *@
-                <button class="relative p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-on-surface/60 hover:text-white hover:bg-white/[0.05] hover:border-white/[0.08] transition-all shadow-sm" title="通知">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+
+            <div class="home-actions">
+                <button class="icon-button" title="通知">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                 </button>
-                @* Equalizer Navigation *@
-                <NavLink href="/eq" class="p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-on-surface/60 hover:text-white hover:bg-white/[0.05] hover:border-white/[0.08] transition-all shadow-sm" title="均衡器">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <NavLink href="/eq" class="icon-button" title="均衡器">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
                     </svg>
                 </NavLink>
-                @* Avatar with premium halo *@
-                <div class="w-8 h-8 rounded-full overflow-hidden border border-white/10 ring-2 ring-neon-purple/20 cursor-pointer hover:scale-105 transition-transform" title="个人中心">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Avatar" class="w-full h-full object-cover" />
+                <div class="home-avatar" title="个人中心">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Avatar" />
                 </div>
             </div>
-        </div>
+        </header>
 
-        @* ── Recently Played (最近播放) ── *@
-        <div>
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-bold text-on-surface/50 uppercase tracking-wider">最近播放</h2>
-                <NavLink href="/library" class="text-xs text-on-surface/40 hover:text-neon-purple transition-colors flex items-center gap-1">
-                    查看全部 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </NavLink>
+        <section class="home-section">
+            <div class="section-heading">
+                <h2>最近播放</h2>
+                <NavLink href="/library">查看全部 <span>›</span></NavLink>
             </div>
 
-            @if (_recentlyPlayed.Count == 0)
-            {
-                <div class="rounded-2xl border border-white/[0.04] bg-white/[0.005] p-8 text-center text-on-surface/30 text-xs shadow-sm">
-                    暂无最近播放曲目
-                </div>
-            }
-            else
-            {
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                    @foreach (var track in _recentlyPlayed)
-                    {
-                        <div class="group cursor-pointer relative" @onclick="() => OnPlay(track)">
-                            <div class="relative rounded-xl overflow-hidden bg-gradient-to-br from-white/[0.03] to-black/[0.2] aspect-square mb-2.5 border border-white/[0.05] shadow-[0_4px_16px_rgba(0,0,0,0.2)] group-hover:shadow-[0_8px_24px_rgba(168,85,247,0.15)] group-hover:border-neon-purple/30 transition-all duration-300">
-                                @if (!string.IsNullOrEmpty(track.CoverPath))
-                                {
-                                    <img src="@track.CoverPath" alt="@track.Title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                }
-                                else
-                                {
-                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-neon-purple/20 via-neutral-900 to-indigo-950/40 relative">
-                                        <svg class="w-10 h-10 text-neon-purple/60 filter drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] transition-transform duration-500 group-hover:scale-105" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 10l12-3" />
-                                            <circle cx="6" cy="19" r="3" fill="currentColor" />
-                                            <circle cx="18" cy="16" r="3" fill="currentColor" />
-                                        </svg>
-                                    </div>
-                                }
-                                
-                                @* Quality Badge *@
-                                <div class="absolute top-2.5 right-2.5 text-[9px] px-1.5 py-0.5 rounded bg-black/75 text-white/95 font-semibold font-mono tracking-wider backdrop-blur-md border border-white/5 shadow-md">
-                                    @GetQualityBadge(track)
-                                </div>
+            <div class="recent-grid">
+                @foreach (var track in RecentDisplayTracks.Take(3))
+                {
+                    var isSample = track.Track is null;
+                    <button class="recent-card" disabled="@isSample" @onclick="() => OnDisplayTrackPlay(track)">
+                        <span class="cover @track.CoverClass">
+                            <span class="quality-badge">@track.Badge</span>
+                            <span class="play-overlay">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            </span>
+                        </span>
+                        <span class="recent-title">@track.Title</span>
+                        <span class="recent-artist">@track.Artist</span>
+                    </button>
+                }
+            </div>
+        </section>
 
-                                @* Play Overlay *@
-                                <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/45 transition-all duration-300">
-                                    <div class="w-11 h-11 rounded-full bg-neon-purple flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-[0_0_15px_rgba(168,85,247,0.6)]">
-                                        <svg class="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-xs font-semibold text-gray-200 truncate group-hover:text-neon-purple transition-colors duration-200">@(track.Title ?? "未知标题")</p>
-                            <p class="text-[10px] text-on-surface/40 truncate mt-0.5 group-hover:text-on-surface/60 transition-colors duration-200">@(track.ArtistName ?? "未知艺术家")</p>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
+        <section class="home-section tracks-section">
+            <h2>全部曲目</h2>
 
-        @* ── All Tracks (全部曲目) ── *@
-        <div>
-            <h2 class="text-sm font-bold text-on-surface/50 uppercase tracking-wider mb-4">全部曲目</h2>
-            
-            <div class="rounded-2xl border border-white/[0.04] bg-white/[0.005] overflow-hidden backdrop-blur-md shadow-lg">
-                @* Table Header *@
-                <div class="grid grid-cols-[50px_3.5fr_2fr_2fr_130px_70px] gap-4 border-b border-white/[0.04] px-6 py-3.5 text-[10px] font-extrabold uppercase tracking-wider text-on-surface/45 bg-white/[0.008] select-none items-center">
+            <div class="track-table">
+                <div class="track-row table-head">
                     <span>#</span>
                     <span>标题</span>
                     <span>艺术家</span>
                     <span>专辑</span>
                     <span>格式</span>
-                    <span class="text-right pr-2">时长</span>
+                    <span>时长</span>
                 </div>
 
-                @* Table Body *@
-                @if (_allTracks.Count == 0)
+                @for (var i = 0; i < TableDisplayTracks.Count; i++)
                 {
-                    <div class="flex flex-col items-center justify-center p-16 text-center text-on-surface/30 text-xs gap-3">
-                        <svg class="w-10 h-10 text-on-surface/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 10l12-3M9 21a3 3 0 11-6 0 3 3 0 016 0zm12-3a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>曲库为空 · 拖入音频文件即可播放，或导入本地目录</span>
-                        <NavLink href="/library" class="mt-2 px-4 py-1.5 rounded-lg bg-neon-purple hover:bg-neon-purple/90 text-white font-semibold transition-all shadow-md">
-                            前往导入
-                        </NavLink>
-                    </div>
-                }
-                else
-                {
-                    <div class="divide-y divide-white/[0.02] max-h-[520px] overflow-y-auto scrollbar-hide">
-                        @for (int i = 0; i < _allTracks.Count; i++)
-                        {
-                            var idx = i + 1;
-                            var track = _allTracks[i];
-                            var isCurrent = Player.State.CurrentTrack?.Id == track.Id;
-                            var isPlaying = isCurrent && Player.State.IsPlaying;
+                    var track = TableDisplayTracks[i];
+                    var idx = i + 1;
+                    var isSample = track.Track is null;
+                    var isCurrent = track.Track != null && Player.State.CurrentTrack?.Id == track.Track.Id;
+                    var isPlaying = isCurrent && Player.State.IsPlaying;
+                    var isHighlightedSample = idx == 1 && isSample;
 
-                            <div class="grid grid-cols-[50px_3.5fr_2fr_2fr_130px_70px] gap-4 px-6 py-3.5 text-xs items-center cursor-pointer hover:bg-white/[0.02] active:bg-white/[0.03] transition-all duration-200 group relative @(isCurrent ? "bg-neon-purple/[0.03]" : "")"
-                                 @onclick="() => OnPlay(track)">
-                                
-                                @* Left Active Track Indicator Line *@
-                                @if (isCurrent)
-                                {
-                                    <div class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-neon-purple shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
-                                }
-
-                                @* Index / Playing Icon *@
-                                <div class="text-on-surface/40 font-mono flex items-center">
-                                    @if (isPlaying)
-                                    {
-                                        <div class="flex items-end gap-[2px] h-3 w-4" title="播放中">
-                                            <span class="w-[2px] bg-neon-purple animate-[pulse_0.8s_infinite_alternate]" style="height: 100%;"></span>
-                                            <span class="w-[2px] bg-neon-purple animate-[pulse_1.1s_infinite_alternate]" style="height: 60%;"></span>
-                                            <span class="w-[2px] bg-neon-purple animate-[pulse_0.9s_infinite_alternate]" style="height: 85%;"></span>
-                                        </div>
-                                    }
-                                    else if (isCurrent)
-                                    {
-                                        <svg class="w-3.5 h-3.5 text-neon-purple" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                    }
-                                    else
-                                    {
-                                        <span class="group-hover:hidden">@idx</span>
-                                        <svg class="w-3.5 h-3.5 text-on-surface/60 hidden group-hover:block" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                    }
-                                </div>
-
-                                @* Title & Cover Thumbnail *@
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-9 h-9 rounded-md overflow-hidden bg-white/[0.02] border border-white/5 flex items-center justify-center shrink-0 shadow-sm relative">
-                                        @if (!string.IsNullOrEmpty(track.CoverPath))
-                                        {
-                                            <img src="@track.CoverPath" alt="" class="w-full h-full object-cover" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-neon-purple/10 to-neutral-900">
-                                                <svg class="w-4 h-4 text-neon-purple/40" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
-                                            </div>
-                                        }
-                                    </div>
-                                    <span class="truncate font-semibold transition-colors duration-200 @(isCurrent ? "text-neon-purple" : "text-gray-200 group-hover:text-neon-purple")">
-                                        @(track.Title ?? "未知标题")
-                                    </span>
-                                </div>
-
-                                @* Artist *@
-                                <span class="truncate transition-colors duration-200 @(isCurrent ? "text-neon-purple/80" : "text-on-surface/60 group-hover:text-on-surface/85")">
-                                    @(track.ArtistName ?? "未知艺术家")
-                                </span>
-
-                                @* Album *@
-                                <span class="truncate text-on-surface/40 group-hover:text-on-surface/60 transition-colors duration-200">
-                                    @(track.AlbumTitle ?? "未知专辑")
-                                </span>
-
-                                @* Format Badge *@
-                                <div>
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded font-mono bg-white/[0.03] text-on-surface/50 border border-white/[0.05] tracking-wider group-hover:text-on-surface/75 group-hover:border-white/[0.08] uppercase transition-all shadow-inner">
-                                        @FormatTechSpecs(track)
-                                    </span>
-                                </div>
-
-                                @* Duration *@
-                                <span class="text-right text-on-surface/45 group-hover:text-on-surface/75 tabular-nums pr-2 transition-colors duration-200">
-                                    @FormatMs(track.DurationMs)
-                                </span>
-
-                            </div>
-                        }
-                    </div>
+                    <button class="track-row track-item @(isCurrent || isHighlightedSample ? "active" : "")"
+                            disabled="@isSample"
+                            @onclick="() => OnDisplayTrackPlay(track)">
+                        <span class="track-index">
+                            @if (isPlaying || isHighlightedSample)
+                            {
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 5H7v14h4V5Zm6 0h-4v14h4V5Z"/></svg>
+                            }
+                            else
+                            {
+                                @idx
+                            }
+                        </span>
+                        <span class="track-title">@track.Title</span>
+                        <span>@track.Artist</span>
+                        <span>@track.Album</span>
+                        <span><span class="format-pill">@track.Format</span></span>
+                        <span class="track-duration">@track.Duration</span>
+                    </button>
                 }
             </div>
-        </div>
+        </section>
     </div>
 </div>
 
@@ -229,6 +110,8 @@
     private List<MediaMusic.Data.Models.Track> _recentlyPlayed = new();
 
     private string Greeting => GetGreeting();
+    private IReadOnlyList<HomeDisplayTrack> RecentDisplayTracks => BuildDisplayTracks(_recentlyPlayed).Take(3).ToList();
+    private IReadOnlyList<HomeDisplayTrack> TableDisplayTracks => BuildDisplayTracks(_allTracks).Take(8).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -245,8 +128,7 @@
     private async Task LoadData()
     {
         _allTracks = (await TrackRepo.SearchAsync(null, null, null, null)).ToList();
-        
-        // Sort recently played by LastPlayed desc, falling back to DateAdded desc.
+
         _recentlyPlayed = _allTracks
             .OrderByDescending(t => SafeParseDate(t.LastPlayed))
             .ThenByDescending(t => SafeParseDate(t.DateAdded))
@@ -277,100 +159,459 @@
         {
             Lyrics.LoadForTrack(Player.State.CurrentTrack.FilePath);
         }
+
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnPlay(MediaMusic.Data.Models.Track t)
+    private async Task OnPlay(MediaMusic.Data.Models.Track track)
     {
-        Lyrics.LoadForTrack(t.FilePath);
-        Player.Play(t);
-        
-        // Dynamically increment play count & update LastPlayed timestamp in DB
-        await TrackRepo.IncrementPlayCountAsync(t.Id);
-        
-        // Reload lists to immediately update the Home View
+        Lyrics.LoadForTrack(track.FilePath);
+        Player.Play(track);
+
+        await TrackRepo.IncrementPlayCountAsync(track.Id);
         await LoadData();
         await InvokeAsync(StateHasChanged);
     }
 
+    private Task OnDisplayTrackPlay(HomeDisplayTrack displayTrack)
+    {
+        return displayTrack.Track is null ? Task.CompletedTask : OnPlay(displayTrack.Track);
+    }
+
     private static string FormatMs(long? ms)
     {
-        if (ms is null or <= 0) return "—";
+        if (ms is null or <= 0) return "--";
         var t = TimeSpan.FromMilliseconds(ms.Value);
         return $"{(int)t.TotalMinutes}:{t.Seconds:D2}";
+    }
+
+    private IReadOnlyList<HomeDisplayTrack> BuildDisplayTracks(IReadOnlyList<Track> source)
+    {
+        if (source.Count == 0)
+        {
+            return SampleTracks;
+        }
+
+        return source.Select((track, index) => new HomeDisplayTrack(
+            track,
+            track.Title ?? "未知标题",
+            track.ArtistName ?? "未知艺术家",
+            track.AlbumTitle ?? "未知专辑",
+            FormatTechSpecs(track),
+            FormatMs(track.DurationMs),
+            GetQualityBadge(track),
+            CoverClasses[index % CoverClasses.Length]
+        )).ToList();
     }
 
     private string FormatTechSpecs(Track track)
     {
         if (string.IsNullOrEmpty(track.Format)) return "AUDIO";
-        var fmt = track.Format.ToUpper();
+        var fmt = track.Format.ToUpperInvariant();
         if (fmt == "FLAC" || fmt == "WAV" || fmt == "ALAC")
         {
             if (track.SampleRate > 0)
             {
-                int bits = 24;
-                if (track.BitRate > 0 && track.SampleRate > 0)
-                {
-                    var ch = track.Channels ?? 2;
-                    bits = (int)Math.Round((double)track.BitRate * 1000 / (track.SampleRate.Value * ch));
-                    if (bits <= 0 || bits > 32) bits = 24;
-                }
+                var bits = EstimateBitDepth(track);
                 return $"{fmt} {bits}/{track.SampleRate.Value / 1000}";
             }
+
             return fmt;
         }
-        if (fmt == "DSD")
-        {
-            return "DSD128";
-        }
-        if (fmt == "MQA")
-        {
-            return "MQA";
-        }
-        if (track.SampleRate > 0)
-        {
-            return $"{fmt} {track.SampleRate.Value / 1000}kHz";
-        }
+
+        if (fmt == "DSD") return "DSD128";
+        if (fmt == "MQA") return "MQA";
+        if (track.SampleRate > 0) return $"{fmt} {track.SampleRate.Value / 1000}kHz";
         return fmt;
     }
 
     private string GetQualityBadge(Track track)
     {
         if (string.IsNullOrEmpty(track.Format)) return "HI-RES";
-        var fmt = track.Format.ToUpper();
+        var fmt = track.Format.ToUpperInvariant();
         if (fmt == "FLAC" || fmt == "WAV" || fmt == "ALAC")
         {
             if (track.SampleRate > 0)
             {
-                int bits = 24;
-                if (track.BitRate > 0 && track.SampleRate > 0)
-                {
-                    var ch = track.Channels ?? 2;
-                    bits = (int)Math.Round((double)track.BitRate * 1000 / (track.SampleRate.Value * ch));
-                    if (bits <= 0 || bits > 32) bits = 24;
-                }
-                return $"{bits}/{track.SampleRate.Value / 1000}";
+                return $"{EstimateBitDepth(track)}/{track.SampleRate.Value / 1000}";
             }
+
             return fmt;
         }
-        if (fmt == "DSD")
-        {
-            return "DSD128";
-        }
-        if (fmt == "MQA")
-        {
-            return "MQA";
-        }
+
+        if (fmt == "DSD") return "DSD128";
+        if (fmt == "MQA") return "MQA";
         return fmt;
+    }
+
+    private static int EstimateBitDepth(Track track)
+    {
+        var bits = 24;
+        if (track.BitRate > 0 && track.SampleRate > 0)
+        {
+            var channels = track.Channels ?? 2;
+            bits = (int)Math.Round((double)track.BitRate * 1000 / (track.SampleRate.Value * channels));
+            if (bits <= 0 || bits > 32) bits = 24;
+        }
+
+        return bits;
     }
 
     public void Dispose()
     {
         Player.StateChanged -= OnPlayerStateChanged;
     }
+
+    private sealed record HomeDisplayTrack(
+        Track? Track,
+        string Title,
+        string Artist,
+        string Album,
+        string Format,
+        string Duration,
+        string Badge,
+        string CoverClass);
+
+    private static readonly string[] CoverClasses =
+    [
+        "cover-obsidian",
+        "cover-lunar",
+        "cover-vinyl",
+        "cover-waves"
+    ];
+
+    private static readonly IReadOnlyList<HomeDisplayTrack> SampleTracks =
+    [
+        new(null, "Clarity", "The Midnight Resonance", "Nocturnal Elements", "FLAC 24/192", "4:12", "24/192", "cover-lunar"),
+        new(null, "Echoes in Silence", "Aurelia", "Void Structures", "DSD128", "5:45", "DSD128", "cover-obsidian"),
+        new(null, "Analog Drift", "Kaelen", "Machine Soul", "MQA", "3:58", "MQA", "cover-vinyl")
+    ];
 }
 
 <style>
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .home-page {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        padding: 28px 36px 40px;
+        background: rgb(var(--background));
+        color: rgb(var(--on-surface));
+        user-select: none;
+    }
+
+    .home-page::-webkit-scrollbar { display: none; }
+    .home-page { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .home-glow {
+        position: absolute;
+        pointer-events: none;
+        border-radius: 999px;
+        filter: blur(100px);
+    }
+
+    .home-glow-a {
+        left: 18%;
+        top: 18%;
+        width: 350px;
+        height: 350px;
+        background: rgba(168, 85, 247, 0.035);
+    }
+
+    .home-glow-b {
+        right: 12%;
+        bottom: 18%;
+        width: 300px;
+        height: 300px;
+        background: rgba(34, 211, 238, 0.025);
+    }
+
+    .home-inner {
+        position: relative;
+        z-index: 1;
+        width: min(980px, 100%);
+        margin: 0 auto;
+    }
+
+    .home-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+
+    .hires-badge {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 10px;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-radius: 4px;
+        background: rgba(245, 158, 11, 0.1);
+        color: #fbbf24;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .home-header h1 {
+        margin-top: 8px;
+        color: #fff;
+        font-size: 25px;
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .home-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding-top: 2px;
+    }
+
+    .icon-button {
+        display: inline-flex;
+        width: 18px;
+        height: 18px;
+        align-items: center;
+        justify-content: center;
+        color: rgba(var(--on-surface), 0.58);
+        transition: color 150ms ease;
+    }
+
+    .icon-button:hover { color: #fff; }
+    .icon-button svg { width: 16px; height: 16px; }
+
+    .home-avatar {
+        width: 22px;
+        height: 22px;
+        overflow: hidden;
+        border-radius: 50%;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.16);
+    }
+
+    .home-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .home-section { margin-top: 28px; }
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .home-section h2,
+    .section-heading h2 {
+        color: #fff;
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 800;
+    }
+
+    .section-heading a {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: rgba(var(--neon-purple), 0.86);
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .section-heading span {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .recent-grid {
+        display: flex;
+        gap: 14px;
+    }
+
+    .recent-card {
+        display: block;
+        width: 100px;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 6px;
+        background: rgba(255,255,255,0.035);
+        text-align: left;
+        transition: background 150ms ease, border-color 150ms ease;
+    }
+
+    .recent-card:hover {
+        border-color: rgba(var(--neon-purple), 0.32);
+        background: rgba(255,255,255,0.055);
+    }
+
+    .cover {
+        position: relative;
+        display: block;
+        width: 82px;
+        height: 78px;
+        overflow: hidden;
+        border-radius: 4px;
+        background: #111318;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .quality-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        padding: 2px 5px;
+        border-radius: 3px;
+        background: rgba(0,0,0,0.7);
+        color: rgba(255,255,255,0.86);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 7px;
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .play-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0);
+        opacity: 0;
+        transition: opacity 150ms ease, background 150ms ease;
+    }
+
+    .recent-card:hover .play-overlay {
+        opacity: 1;
+        background: rgba(0,0,0,0.35);
+    }
+
+    .play-overlay svg {
+        width: 32px;
+        height: 32px;
+        padding: 8px;
+        border-radius: 50%;
+        background: rgb(var(--neon-purple));
+        color: #fff;
+        box-shadow: 0 0 16px rgba(168,85,247,0.45);
+    }
+
+    .recent-title,
+    .recent-artist {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .recent-title {
+        margin-top: 8px;
+        color: rgba(255,255,255,0.92);
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .recent-artist {
+        margin-top: 2px;
+        color: rgba(var(--on-surface), 0.46);
+        font-size: 9px;
+    }
+
+    .tracks-section h2 { margin-bottom: 14px; }
+
+    .track-table {
+        width: 100%;
+    }
+
+    .track-row {
+        display: grid;
+        grid-template-columns: 42px minmax(150px, 2.2fr) minmax(100px, 1.3fr) minmax(130px, 1.6fr) 110px 58px;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .table-head {
+        padding: 8px 20px;
+        color: rgba(var(--on-surface), 0.45);
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .track-item {
+        min-height: 38px;
+        padding: 8px 20px;
+        border-radius: 6px;
+        color: rgba(var(--on-surface), 0.56);
+        font-size: 10px;
+        text-align: left;
+        transition: background 150ms ease, color 150ms ease;
+    }
+
+    .track-item:hover { background: rgba(255,255,255,0.04); }
+    .track-item.active { background: rgba(255,255,255,0.095); }
+    .track-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .track-index svg {
+        width: 14px;
+        height: 14px;
+        color: rgb(var(--neon-purple));
+    }
+
+    .track-title {
+        color: rgba(255,255,255,0.88);
+        font-weight: 700;
+    }
+
+    .track-item.active .track-title { color: rgb(var(--neon-purple)); }
+
+    .format-pill {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        padding: 2px 7px;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 4px;
+        background: rgba(255,255,255,0.025);
+        color: rgba(var(--on-surface), 0.58);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 8px;
+        line-height: 1.2;
+        font-weight: 700;
+    }
+
+    .track-duration {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cover-obsidian {
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.08), transparent 22%),
+            repeating-linear-gradient(135deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 18px),
+            linear-gradient(145deg, #071011, #151821 48%, #06070a);
+    }
+
+    .cover-lunar {
+        background:
+            radial-gradient(circle at 62% 42%, rgba(255,236,217,0.92) 0 15%, rgba(189,132,255,0.78) 16% 24%, transparent 25%),
+            radial-gradient(circle at 48% 44%, rgba(168,85,247,0.65), transparent 35%),
+            linear-gradient(160deg, #11102a, #25113f 52%, #08090f);
+    }
+
+    .cover-vinyl {
+        background:
+            repeating-radial-gradient(circle at 25% 14%, rgba(255,255,255,0.17) 0 2px, transparent 2px 10px),
+            linear-gradient(135deg, #132325, #0a0d0f 48%, #303a36);
+    }
+
+    .cover-waves {
+        background:
+            repeating-linear-gradient(160deg, rgba(86,216,199,0.2) 0 5px, transparent 5px 13px),
+            linear-gradient(135deg, #081415, #171a24 48%, #0b0b10);
+    }
 </style>

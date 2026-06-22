@@ -9,7 +9,6 @@
 <div class="flex h-full flex-col bg-background text-on-surface">
     @if (AppState.IsOnboardingComplete)
     {
-        <TitleBar />
         @* ── Post-onboarding: sidebar + content + player bar ── *@
         <div class="flex flex-1 overflow-hidden">
             <Sidebar />
@@ -21,9 +20,8 @@
     }
     else
     {
-        @* ── Onboarding: truly full-bleed, titlebar overlays transparently ── *@
+        @* ── Onboarding: truly full-bleed ── *@
         <div class="relative flex-1 overflow-hidden">
-            <TitleBar Class="absolute top-0 left-0 right-0 z-50 bg-transparent" />
             <main class="h-full w-full">
                 @Body
             </main>
