@@ -1,0 +1,46 @@
+@* Virtualized track list (PRD §2.2). Stub; real data bound to TrackRepository search results. *@
+
+<div class="flex h-full flex-col">
+    <div class="grid grid-cols-[2fr_1fr_1fr_60px] gap-2 border-b border-on-surface/10 px-3 py-2 text-xs uppercase tracking-wide text-on-surface/50">
+        <span>标题</span>
+        <span>艺术家</span>
+        <span>专辑</span>
+        <span class="text-right">时长</span>
+    </div>
+    <div class="flex-1 overflow-auto">
+        @if (Tracks.Count == 0)
+        {
+            <div class="p-8 text-center text-on-surface/40 text-sm">
+                曲库为空 · 拖入音频文件即播，或使用「曲库」页深度扫描本地目录。
+            </div>
+        }
+        else
+        {
+            <Virtualize Items="Tracks" TItem="MediaMusic.Data.Models.Track" Context="t" OverscanCount="10">
+                <ItemContent>
+                    <div class="grid grid-cols-[2fr_1fr_1fr_60px] gap-2 px-3 py-2 text-sm hover:bg-surface-variant cursor-pointer"
+                         @onclick="() => OnPlay(t)">
+                        <span class="truncate">@t.Title</span>
+                        <span class="truncate text-on-surface/60">@t.ArtistName</span>
+                        <span class="truncate text-on-surface/60">@t.AlbumTitle</span>
+                        <span class="text-right text-on-surface/50 tabular-nums">@FormatMs(t.DurationMs)</span>
+                    </div>
+                </ItemContent>
+            </Virtualize>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public ICollection<MediaMusic.Data.Models.Track> Tracks { get; set; } = Array.Empty<MediaMusic.Data.Models.Track>();
+    [Parameter] public EventCallback<MediaMusic.Data.Models.Track> OnPlayTrack { get; set; }
+
+    private void OnPlay(MediaMusic.Data.Models.Track t) => OnPlayTrack.InvokeAsync(t);
+
+    private static string FormatMs(long? ms)
+    {
+        if (ms is null or <= 0) return "—";
+        var t = TimeSpan.FromMilliseconds(ms.Value);
+        return $"{(int)t.TotalMinutes}:{t.Seconds:D2}";
+    }
+}

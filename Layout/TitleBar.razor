@@ -1,0 +1,38 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@inject ThemeService Theme
+
+<div class="titlebar flex h-9 items-center justify-between select-none @(Class ?? "bg-surface-variant")">
+    @* Drag region + app title (PRD §3.1 chromeless) *@
+    <div class="flex items-center gap-2 px-3 flex-1 h-full" id="titlebar-drag-region">
+        <span class="text-accent font-semibold text-sm tracking-wide">🎵 MediaMusic</span>
+        <span class="text-on-surface/40 text-xs">— local lossless player</span>
+    </div>
+
+    <div class="flex items-center">
+        @* Theme toggle (PRD §3.1) *@
+        <button class="titlebar-btn" title="切换主题" @onclick="ToggleTheme">
+            <span class="text-sm">🌙</span>
+        </button>
+        @* Window controls (PRD §3.1) *@
+        <button class="titlebar-btn" title="最小化" @onclick="Minimize">
+            <svg width="12" height="12" viewBox="0 0 12 12"><rect y="5" width="12" height="2" fill="currentColor" /></svg>
+        </button>
+        <button class="titlebar-btn" title="最大化" @onclick="Maximize">
+            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="1.5" fill="none" /></svg>
+        </button>
+        <button class="titlebar-btn close" title="关闭" @onclick="Close">
+            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" /></svg>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Class { get; set; }
+
+    private async Task Minimize() => await JS.InvokeVoidAsync("mediamusic.window.minimize");
+    private async Task Maximize() => await JS.InvokeVoidAsync("mediamusic.window.maximize");
+    private async Task Close() => await JS.InvokeVoidAsync("mediamusic.window.close");
+
+    private async Task ToggleTheme() => await Theme.ToggleAsync();
+}

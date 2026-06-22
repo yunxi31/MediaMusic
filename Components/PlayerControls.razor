@@ -1,0 +1,113 @@
+@inject PlayerService Player
+@inject NavigationManager Nav
+
+@* Bottom playback control bar (Figma: library page bottom player) *@
+<div class="flex h-[72px] items-center gap-3 border-t border-on-surface/10 bg-surface px-4 select-none">
+
+    @* ── Left: Cover thumbnail + song details ── *@
+    <div class="flex items-center gap-3 w-64 min-w-0 cursor-pointer" @onclick="GoToNowPlaying">
+        <div class="w-11 h-11 rounded-lg bg-surface-variant overflow-hidden shrink-0">
+            @if (!string.IsNullOrEmpty(Player.State.CurrentTrack?.CoverPath))
+            {
+                <img src="@Player.State.CurrentTrack.CoverPath" alt="" class="w-full h-full object-cover" />
+            }
+            else
+            {
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/10 to-purple-900/30">
+                    <svg class="w-5 h-5 text-accent/40" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+                </div>
+            }
+        </div>
+        <div class="min-w-0">
+            <p class="text-sm font-medium truncate">@(Player.State.CurrentTrack?.Title ?? "未播放")</p>
+            <p class="text-xs text-on-surface/40 truncate">@(Player.State.CurrentTrack?.ArtistName ?? "将音频文件拖入即可开始")</p>
+        </div>
+        @* Favourite button *@
+        <button class="text-on-surface/30 hover:text-accent transition-colors ml-1 shrink-0" title="收藏">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+        </button>
+    </div>
+
+    @* ── Center: Playback controls + timeline ── *@
+    <div class="flex-1 flex flex-col items-center gap-1">
+        <div class="flex items-center gap-3">
+            <button class="text-on-surface/40 hover:text-on-surface transition-colors" title="随机播放">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+            </button>
+            <button class="text-on-surface/50 hover:text-on-surface transition-colors" title="上一首" @onclick="Prev">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button class="w-10 h-10 rounded-full bg-on-surface text-background flex items-center justify-center hover:scale-105 transition-transform" title="@(Player.State.IsPlaying ? "暂停" : "播放")" @onclick="TogglePlay">
+                @if (Player.State.IsPlaying)
+                {
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                }
+                else
+                {
+                    <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                }
+            </button>
+            <button class="text-on-surface/50 hover:text-on-surface transition-colors" title="下一首" @onclick="Next">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+            <button class="text-on-surface/40 hover:text-on-surface transition-colors" title="循环">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            </button>
+        </div>
+        <div class="flex items-center gap-2 w-full max-w-lg">
+            <span class="text-[11px] text-on-surface/40 tabular-nums w-10 text-right">@FormatMs(Player.State.PositionMs)</span>
+            <div class="flex-1 h-1 rounded-full bg-on-surface/10 relative cursor-pointer group">
+                <div class="h-1 rounded-full bg-on-surface/80 transition-all" style="width:@Progress%"></div>
+                <div class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-on-surface opacity-0 group-hover:opacity-100 transition-opacity" style="left:calc(@Progress% - 6px)"></div>
+            </div>
+            <span class="text-[11px] text-on-surface/40 tabular-nums w-10">@FormatMs(Player.State.DurationMs)</span>
+        </div>
+    </div>
+
+    @* ── Right: Quality badge + Volume ── *@
+    <div class="flex items-center gap-3 w-48 justify-end">
+        @if (Player.State.CurrentTrack?.Format is not null)
+        {
+            <span class="text-[9px] px-2 py-0.5 rounded bg-surface-variant text-on-surface/40 font-mono tracking-wider uppercase">
+                @Player.State.CurrentTrack.Format @(Player.State.CurrentTrack.SampleRate > 0 ? $"{Player.State.CurrentTrack.SampleRate / 1000}kHz" : "")
+            </span>
+        }
+        <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-on-surface/40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            <input type="range" min="0" max="100" value="@((int)(Player.State.Volume * 100))"
+                   @onchange="OnVolume"
+                   class="w-20 h-1 rounded-full appearance-none bg-on-surface/15 accent-on-surface cursor-pointer
+                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                          [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-on-surface" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private double Progress => Player.State.DurationMs <= 0 ? 0 : Player.State.PositionMs * 100.0 / Player.State.DurationMs;
+
+    private void TogglePlay()
+    {
+        if (Player.State.IsPlaying) Player.Pause(); else Player.Resume();
+    }
+    private void Prev() => Player.Previous();
+    private void Next() => Player.Next();
+    private void GoToNowPlaying() => Nav.NavigateTo("/nowplaying");
+
+    private void OnVolume(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v))
+            Player.SetVolume(v / 100.0);
+    }
+
+    private static string FormatMs(long ms)
+    {
+        if (ms <= 0) return "0:00";
+        var t = TimeSpan.FromMilliseconds(ms);
+        return $"{(int)t.TotalMinutes}:{t.Seconds:D2}";
+    }
+}

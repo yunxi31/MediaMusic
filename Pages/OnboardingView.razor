@@ -1,0 +1,182 @@
+@page "/onboarding"
+@inject AppState AppState
+@inject SettingsService Settings
+@inject LibraryService Library
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>欢迎使用 MediaMusic</PageTitle>
+
+@if (_step == 0)
+{
+    <StepWelcome OnNext="Next" />
+}
+else
+{
+    <div class="flex h-full flex-col items-center justify-center bg-background text-on-surface select-none">
+
+        @* ─── Step indicator ─── *@
+        <div class="flex gap-3 mb-10">
+            @for (int i = 0; i < StepTitles.Length; i++)
+            {
+                var idx = i;
+                <div class="flex flex-col items-center gap-1">
+                    <div class="w-2.5 h-2.5 rounded-full transition-all duration-300 @(idx == _step ? "bg-accent scale-125" : idx < _step ? "bg-accent/50" : "bg-on-surface/20")"></div>
+                </div>
+            }
+        </div>
+
+        @* ─── Card ─── *@
+        <div class="w-full max-w-2xl h-[480px] bg-surface border border-on-surface/10 rounded-2xl shadow-2xl overflow-hidden">
+            @if (_step == 1) { <StepFeatures /> }
+            @if (_step == 2)
+            {
+                <StepSetup
+                    Roots="_roots"
+                    IsScanning="_isScanning"
+                    ScanDone="_scanDone"
+                    Progress="AppState.ScanProgress"
+                    OnAddFolder="AddFolder"
+                    OnRemoveFolder="RemoveFolder" />
+            }
+        </div>
+
+        @* ─── Navigation buttons ─── *@
+        <div class="flex gap-4 mt-8">
+            @if (_step > 0 && !_isScanning)
+            {
+                <button class="px-6 py-2.5 rounded-xl border border-on-surface/20 hover:bg-surface transition-colors"
+                        @onclick="Prev">
+                    上一步
+                </button>
+            }
+
+            @if (_step < StepTitles.Length - 1)
+            {
+                <button class="px-8 py-2.5 rounded-xl bg-accent text-on-accent font-medium hover:brightness-110 transition-all"
+                        @onclick="Next">
+                    下一步
+                </button>
+            }
+            else if (!_scanDone)
+            {
+                <button class="px-8 py-2.5 rounded-xl bg-accent text-on-accent font-medium hover:brightness-110 transition-all disabled:opacity-50"
+                        disabled="@(_isScanning || _roots.Count == 0)"
+                        @onclick="StartScanAndFinish">
+                    @(_isScanning ? "扫描中…" : "开始扫描并进入")
+                </button>
+                @if (!_isScanning)
+                {
+                    <button class="px-6 py-2.5 rounded-xl border border-on-surface/20 hover:bg-surface transition-colors"
+                            @onclick="SkipScan">
+                        跳过，直接进入
+                    </button>
+                }
+            }
+            else
+            {
+                <button class="px-8 py-2.5 rounded-xl bg-accent text-on-accent font-medium hover:brightness-110 transition-all"
+                        @onclick="Finish">
+                    进入 MediaMusic →
+                </button>
+            }
+        </div>
+    </div>
+}
+
+@* ─────────────────────────  Inline child components  ───────────────────────── *@
+
+@* Step 0: Welcome *@
+@code {
+    private static readonly string[] StepTitles = { "欢迎", "功能", "设置" };
+    private int _step;
+    private readonly List<string> _roots = new();
+    private bool _isScanning;
+    private bool _scanDone;
+    private CancellationTokenSource? _cts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // If already onboarded, skip straight to main app.
+        var done = false; // Forced: always load onboarding.
+        if (done)
+        {
+            AppState.SetOnboardingComplete(true);
+            Nav.NavigateTo("/");
+        }
+    }
+
+    private void Next() { if (_step < StepTitles.Length - 1) _step++; }
+    private void Prev() { if (_step > 0) _step--; }
+
+    private async Task AddFolder()
+    {
+        // Use JS to show a native folder-picker via the Photino bridge exposed in mediamusic.platform
+        try
+        {
+            var path = await JS.InvokeAsync<string?>("mediamusic.platform.pickFolder");
+            if (!string.IsNullOrEmpty(path) && !_roots.Contains(path))
+            {
+                _roots.Add(path);
+                AppState.ScanRoots.Add(path);
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // Fallback: let the user type a path manually via prompt
+            var path = await JS.InvokeAsync<string?>("eval", "prompt('输入音乐文件夹路径：')");
+            if (!string.IsNullOrEmpty(path) && Directory.Exists(path) && !_roots.Contains(path))
+            {
+                _roots.Add(path);
+                AppState.ScanRoots.Add(path);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void RemoveFolder(string path)
+    {
+        _roots.Remove(path);
+        AppState.ScanRoots.Remove(path);
+    }
+
+    private async Task StartScanAndFinish()
+    {
+        if (_roots.Count == 0) return;
+        _isScanning = true;
+        _cts = new CancellationTokenSource();
+
+        var progress = new Progress<MediaMusic.Library.ScanProgress>(p =>
+        {
+            AppState.SetScanProgress(p);
+            InvokeAsync(StateHasChanged);
+        });
+
+        try
+        {
+            await Library.ScanAsync(_roots, progress, _cts.Token);
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            AppState.SetScanProgress(null);
+            _isScanning = false;
+            _scanDone = true;
+        }
+
+        await Settings.SetAsync("onboarding_complete", "true");
+        await Settings.SetAsync("scan_roots", string.Join("|", _roots));
+        AppState.SetOnboardingComplete(true);
+        StateHasChanged();
+    }
+
+    private async Task SkipScan()
+    {
+        await Settings.SetAsync("onboarding_complete", "true");
+        AppState.SetOnboardingComplete(true);
+        Nav.NavigateTo("/");
+    }
+
+    private void Finish() => Nav.NavigateTo("/");
+}

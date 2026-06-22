@@ -1,0 +1,22 @@
+@* Mini Player floating window root (PRD §3.1). Hosted in its own PhotinoBlazorApp
+   loading wwwroot/miniplayer.html. Shares PlayerService singleton with the main window. *@
+@inject PlayerService Player
+
+<div class="flex h-full items-center gap-3 p-3 bg-surface text-on-surface select-none">
+    <CoverArt Size="48" />
+    <div class="flex-1 min-w-0">
+        <div class="truncate text-sm font-medium">@(Player.State.CurrentTrack?.Title ?? "MediaMusic")</div>
+        <div class="truncate text-xs text-on-surface/50">@(Player.State.CurrentTrack?.ArtistName ?? "—")</div>
+    </div>
+    <div class="flex items-center gap-1">
+        <button class="titlebar-btn" @onclick="Prev">⏮</button>
+        <button class="titlebar-btn" @onclick="Toggle">@(Player.State.IsPlaying ? "⏸" : "▶")</button>
+        <button class="titlebar-btn" @onclick="Next">⏭</button>
+    </div>
+</div>
+
+@code {
+    private void Toggle() { if (Player.State.IsPlaying) Player.Pause(); else Player.Resume(); }
+    private void Prev() => Player.Previous();
+    private void Next() => Player.Next();
+}

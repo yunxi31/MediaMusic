@@ -1,0 +1,9 @@
+// Global using directives for MediaMusic.
+// These supplement the implicit usings provided by Microsoft.NET.Sdk.Razor.
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.DependencyInjection;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;

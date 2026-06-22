@@ -1,0 +1,105 @@
+@* Step 1 – Features overview (Figma: 引导页 - 核心功能 Features) *@
+<div class="px-8 py-10">
+    @* Header *@
+    <p class="text-xs text-on-surface/40 mb-1 tracking-wider">MediaMusic</p>
+
+    @* Two-column layout *@
+    <div class="flex gap-6">
+        @* ── Left column: engine info + visualizer ── *@
+        <div class="flex-1 space-y-4">
+            <div>
+                <h2 class="text-3xl font-bold tracking-tight">顶尖音频引擎</h2>
+                <p class="text-lg text-on-surface/60 mt-1">Advanced Audio Engine</p>
+            </div>
+            <p class="text-xs text-on-surface/40 leading-relaxed">
+                延迟 0ms · 采样率最高 192kHz · 无损比特深度解码<br/>
+                <span class="text-on-surface/30">Support 0ms Gapless &amp; 192kHz Hi-Res Decoding</span>
+            </p>
+
+            @* Engine status card with animated visualizer *@
+            <div class="rounded-xl border border-on-surface/10 bg-surface-variant/50 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                        </span>
+                        <span class="text-xs tracking-widest text-on-surface/50 uppercase font-mono">Engine Active</span>
+                    </div>
+                    <span class="text-xs text-on-surface/40 font-mono">192kHz / 24-bit</span>
+                </div>
+
+                @* Animated audio visualizer bars *@
+                <div class="flex items-end justify-center gap-1.5 h-24">
+                    @for (int i = 0; i < 16; i++)
+                    {
+                        var delay = i * 0.08;
+                        var height = 30 + Random.Shared.Next(70);
+                        <div class="w-2 rounded-t bg-accent/80 transition-all"
+                             style="height: @(height)%; animation: eq-bar @(0.6 + delay)s ease-in-out infinite alternate; animation-delay: @(delay)s;">
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ── Right column: feature cards ── *@
+        <div class="w-64 space-y-3">
+            @* Gapless Playback *@
+            <div class="rounded-xl border border-on-surface/10 bg-surface-variant/30 p-4 hover:bg-surface-variant/50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">无缝播放</p>
+                        <p class="text-xs text-on-surface/40">Gapless Playback</p>
+                    </div>
+                </div>
+            </div>
+
+            @* 10-Band EQ *@
+            <div class="rounded-xl border border-on-surface/10 bg-surface-variant/30 p-4 hover:bg-surface-variant/50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                            <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
+                            <line x1="17" y1="16" x2="23" y2="16"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">10段均衡器</p>
+                        <p class="text-xs text-on-surface/40">10-Band EQ</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Crossfade *@
+            <div class="rounded-xl border border-on-surface/10 bg-surface-variant/30 p-4 hover:bg-surface-variant/50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">交叉淡入淡出</p>
+                        <p class="text-xs text-on-surface/40">Crossfade</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes eq-bar {
+        0%   { height: 20%; }
+        100% { height: 95%; }
+    }
+</style>

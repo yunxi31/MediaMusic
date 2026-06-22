@@ -1,0 +1,42 @@
+@* 10+ band equalizer panel (PRD §2.1). Stub UI; slider changes route to EqualizerService. *@
+
+<div class="flex flex-col gap-4 p-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">均衡器</h2>
+        <select class="bg-surface-variant rounded px-2 py-1 text-sm" @onchange="OnPreset">
+            <option value="0">— 预设 —</option>
+            @foreach (var f in Frequencies)
+            {
+                <option value="@f">@f Hz</option>
+            }
+        </select>
+    </div>
+
+    <div class="flex items-end justify-between gap-2 h-48">
+        @foreach (var f in Frequencies)
+        {
+            <div class="flex flex-1 flex-col items-center gap-2">
+                <input type="range" min="-12" max="12" step="0.5" value="0"
+                       class="h-32 accent-accent" data-freq="@f" @onchange="OnBand" />
+                <span class="text-[10px] text-on-surface/60">@FormatFreq(f)</span>
+            </div>
+        }
+    </div>
+    <p class="text-xs text-on-surface/40">范围 −12dB ~ +12dB · 预设与回写待接入 EqualizerService</p>
+</div>
+
+@code {
+    // 10 bands (PRD requires 10+). Matches EqualizerService.DefaultFrequencies.
+    private static readonly double[] Frequencies = EqualizerService.DefaultFrequencies;
+
+    private void OnBand(ChangeEventArgs e)
+    {
+        // TODO: parse gain + data-freq, call EqualizerService.ApplyBands(...).
+    }
+    private void OnPreset(ChangeEventArgs e)
+    {
+        // TODO: load preset from EqPresetRepository and apply.
+    }
+
+    private static string FormatFreq(double f) => f >= 1000 ? $"{f / 1000:F0}k" : f.ToString("F0");
+}

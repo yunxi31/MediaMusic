@@ -1,0 +1,16 @@
+@page "/eq"
+
+<PageTitle>均衡器 — MediaMusic</PageTitle>
+
+<div class="flex h-full flex-col">
+    <div class="flex items-center justify-between border-b border-on-surface/10 px-4 py-3">
+        <h1 class="text-lg font-semibold">均衡器</h1>
+        <div class="flex gap-2 text-xs">
+            <NavLink class="hover:text-accent" href="/">返回</NavLink>
+            <NavLink class="hover:text-accent" href="/library">曲库</NavLink>
+        </div>
+    </div>
+    <div class="flex-1 overflow-auto">
+        <EqualizerPanel />
+    </div>
+</div>

@@ -1,0 +1,63 @@
+@page "/metadata"
+@using MediaMusic.Data.Models
+@inject LibraryService Library
+
+<PageTitle>元数据编辑 — MediaMusic</PageTitle>
+
+<div class="flex h-full flex-col">
+    <div class="flex items-center justify-between border-b border-on-surface/10 px-4 py-3">
+        <h1 class="text-lg font-semibold">元数据编辑</h1>
+        <div class="flex gap-2 text-xs">
+            <NavLink class="hover:text-accent" href="/">返回</NavLink>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-auto p-6 max-w-2xl mx-auto w-full">
+        <div class="flex gap-6">
+            <CoverArt Size="160" />
+            <button class="self-end text-xs px-3 py-1 rounded bg-surface-variant">选择封面…</button>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 gap-4">
+            <label class="text-sm">
+                <span class="block text-on-surface/60 mb-1">歌名</span>
+                <input @bind="_title" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
+            </label>
+            <label class="text-sm">
+                <span class="block text-on-surface/60 mb-1">艺术家</span>
+                <input @bind="_artist" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
+            </label>
+            <label class="text-sm">
+                <span class="block text-on-surface/60 mb-1">专辑</span>
+                <input @bind="_album" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+                <label class="text-sm">
+                    <span class="block text-on-surface/60 mb-1">年份</span>
+                    <input @bind="_year" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
+                </label>
+                <label class="text-sm">
+                    <span class="block text-on-surface/60 mb-1">音轨号</span>
+                    <input @bind="_trackNo" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
+                </label>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button class="px-4 py-1.5 rounded bg-surface-variant text-sm">取消</button>
+            <button class="px-4 py-1.5 rounded bg-accent text-on-accent text-sm" @onclick="Save">保存并回写</button>
+        </div>
+        <p class="mt-3 text-xs text-on-surface/40">修改将同步回写音频文件头与 SQLite 数据库（PRD §2.2）。</p>
+    </div>
+</div>
+
+@code {
+    private string? _title, _artist, _album;
+    private string? _year, _trackNo;
+
+    private async Task Save()
+    {
+        // TODO: build Track from fields + cover image, call LibraryService.EditMetadataAsync(...).
+        await Task.CompletedTask;
+    }
+}

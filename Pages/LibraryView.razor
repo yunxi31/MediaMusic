@@ -1,0 +1,181 @@
+@page "/library"
+@inject LibraryService Library
+@inject PlayerService Player
+@inject TrackRepository TrackRepo
+@inject IJSRuntime JS
+@inject AppState AppState
+
+<PageTitle>音乐库 — MediaMusic</PageTitle>
+
+<div class="flex h-full flex-col p-6 gap-5">
+    @* ── Header ── *@
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold">音乐库</h1>
+            <p class="text-sm text-on-surface/40 mt-0.5">
+                @_trackCount 首歌曲 • @FormatSize(_totalSize) 音频
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-variant text-sm text-on-surface/60 hover:bg-surface-variant/80 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46"/></svg>
+                筛选
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-variant text-sm text-on-surface/60 hover:bg-surface-variant/80 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                添加日期
+            </button>
+        </div>
+    </div>
+
+    @* ── Search bar ── *@
+    <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface/30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input placeholder="搜索歌曲、艺术家、专辑…" @bind="_searchQuery" @bind:event="oninput" @onkeyup="OnSearchKey"
+               class="w-full pl-10 pr-4 py-2 rounded-xl bg-surface border border-on-surface/10 text-sm placeholder:text-on-surface/30 focus:outline-none focus:border-accent/50 transition-colors" />
+    </div>
+
+    @* ── Drag & Drop zone ── *@
+    <div class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-on-surface/10 py-10 gap-3 hover:border-accent/30 transition-colors cursor-pointer"
+         @onclick="PickAndScan">
+        <svg class="w-10 h-10 text-on-surface/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <p class="text-sm text-on-surface/40 font-medium">导入高解析音频源</p>
+        <p class="text-xs text-on-surface/25">拖放或点击选择 (FLAC, ALAC, WAV).</p>
+    </div>
+
+    @* ── Scan progress ── *@
+    @if (_isScanning && AppState.ScanProgress is not null)
+    {
+        <div class="flex items-center gap-3">
+            <div class="flex-1 bg-surface-variant rounded-full h-1.5">
+                <div class="bg-accent h-1.5 rounded-full transition-all" style="width:@(AppState.ScanProgress.TotalFound > 0 ? AppState.ScanProgress.Processed * 100 / AppState.ScanProgress.TotalFound : 0)%"></div>
+            </div>
+            <span class="text-xs text-on-surface/40 tabular-nums">@AppState.ScanProgress.Processed/@AppState.ScanProgress.TotalFound</span>
+        </div>
+    }
+
+    @* ── Recently Added section ── *@
+    <div>
+        <h2 class="text-sm font-semibold text-on-surface/50 uppercase tracking-wider mb-3">最近添加</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            @foreach (var track in _results.Take(20))
+            {
+                <div class="group cursor-pointer" @onclick="() => OnPlay(track)">
+                    <div class="relative rounded-xl overflow-hidden bg-surface-variant aspect-square mb-2">
+                        @if (!string.IsNullOrEmpty(track.CoverPath))
+                        {
+                            <img src="@track.CoverPath" alt="@track.Title" class="w-full h-full object-cover" />
+                        }
+                        else
+                        {
+                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/10 to-purple-900/30">
+                                <svg class="w-10 h-10 text-accent/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+                            </div>
+                        }
+                        @* Quality badge *@
+                        @if (track.SampleRate > 0 || !string.IsNullOrEmpty(track.Format))
+                        {
+                            <div class="absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded bg-black/60 text-white/80 font-mono backdrop-blur-sm">
+                                @(track.BitRate > 0 ? $"{(track.BitRate > 1000 ? track.BitRate / 1000 : track.BitRate)}k" : track.Format?.ToUpper())
+                                @(track.SampleRate > 0 ? $"/{track.SampleRate / 1000}kHz" : "")
+                            </div>
+                        }
+                        @* Play overlay *@
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-all">
+                            <div class="w-10 h-10 rounded-full bg-accent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                                <svg class="w-5 h-5 text-on-accent ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium truncate">@(track.Title ?? "未知标题")</p>
+                    <p class="text-xs text-on-surface/40 truncate">@(track.ArtistName ?? "未知艺术家")</p>
+                </div>
+            }
+
+            @if (_results.Count == 0 && !_isScanning)
+            {
+                <div class="col-span-full text-center py-8 text-on-surface/25 text-sm">
+                    曲库为空 · 请点击上方区域导入音频文件
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _searchQuery;
+    private List<Track> _results = new();
+    private int _trackCount;
+    private long _totalSize;
+    private bool _isScanning;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.Changed += OnStateChanged;
+        await LoadTracks();
+    }
+
+    private async Task LoadTracks()
+    {
+        _results = (await TrackRepo.SearchAsync(null, null, null, null)).ToList();
+        _trackCount = _results.Count;
+        // Estimate size from bitrate & duration
+        _totalSize = _results.Sum(t => (long)(t.BitRate > 0 && t.DurationMs > 0
+            ? (double)t.BitRate * t.DurationMs / 8000.0
+            : 0));
+    }
+
+    private async Task OnSearchKey(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            await LoadTracks();
+        }
+        else
+        {
+            _results = (await TrackRepo.SearchAsync(null, null, null, _searchQuery)).ToList();
+        }
+    }
+
+    private async Task PickAndScan()
+    {
+        try
+        {
+            var path = await JS.InvokeAsync<string?>("mediamusic.platform.pickFolder");
+            if (string.IsNullOrEmpty(path)) return;
+
+            _isScanning = true;
+            var progress = new Progress<ScanProgress>(p =>
+            {
+                AppState.SetScanProgress(p);
+                InvokeAsync(StateHasChanged);
+            });
+            await Library.ScanAsync(new[] { path }, progress);
+            AppState.SetScanProgress(null);
+            _isScanning = false;
+            await LoadTracks();
+        }
+        catch
+        {
+            _isScanning = false;
+        }
+    }
+
+    private void OnPlay(Track t) => Player.Play(t);
+
+    private async void OnStateChanged(object? sender, EventArgs e) => await InvokeAsync(StateHasChanged);
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024L * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F1} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):F1} GB";
+    }
+
+    public void Dispose() => AppState.Changed -= OnStateChanged;
+}

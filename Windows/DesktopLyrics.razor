@@ -1,0 +1,17 @@
+@* Desktop lyrics overlay root (PRD §2.3). Hosted in its own PhotinoBlazorApp
+   loading wwwroot/lyrics.html. The window is chromeless, transparent, top-most and
+   click-through (Platform.ClickThroughService). Shares LyricsService singleton. *@
+@inject LyricsService Lyrics
+
+<div class="flex h-full items-center justify-center text-center px-6">
+    <div class="text-4xl font-bold drop-shadow-lg" style="color:rgb(var(--accent))">
+        @(_current ?? "♪ ♫ ♪")
+    </div>
+</div>
+
+@code {
+    private string? _current;
+
+    // TODO: subscribe to PlayerService position updates and set _current to the
+    //       active LyricsLine.Text via LyricsService.GetActiveIndex(...).
+}

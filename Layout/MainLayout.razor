@@ -1,0 +1,72 @@
+@using MediaMusic.Layout
+@inherits LayoutComponentBase
+@inject AppState AppState
+@inject SettingsService Settings
+@inject ThemeService Theme
+@inject NavigationManager Nav
+
+@* Full application shell: TitleBar → Sidebar + Content + PlayerBar *@
+<div class="flex h-full flex-col bg-background text-on-surface">
+    @if (AppState.IsOnboardingComplete)
+    {
+        <TitleBar />
+        @* ── Post-onboarding: sidebar + content + player bar ── *@
+        <div class="flex flex-1 overflow-hidden">
+            <Sidebar />
+            <main class="flex-1 overflow-hidden bg-background">
+                @Body
+            </main>
+        </div>
+        <PlayerControls />
+    }
+    else
+    {
+        @* ── Onboarding: truly full-bleed, titlebar overlays transparently ── *@
+        <div class="relative flex-1 overflow-hidden">
+            <TitleBar Class="absolute top-0 left-0 right-0 z-50 bg-transparent" />
+            <main class="h-full w-full">
+                @Body
+            </main>
+        </div>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Restore theme preference
+        var theme = await Settings.GetAsync<string>("theme", "dark");
+        if (theme != null)
+        {
+            await Theme.ApplyAsync(theme);
+        }
+
+        // Hydrate onboarding state from DB on first load.
+        var done = false; // Forced: always load onboarding.
+        if (done && !AppState.IsOnboardingComplete)
+        {
+            AppState.SetOnboardingComplete(true);
+        }
+        else if (!done)
+        {
+            // Force navigate to onboarding if not completed.
+            var uri = Nav.ToBaseRelativePath(Nav.Uri);
+            if (!uri.StartsWith("onboarding", StringComparison.OrdinalIgnoreCase))
+            {
+                Nav.NavigateTo("/onboarding");
+            }
+        }
+
+        AppState.Changed += OnStateChanged;
+    }
+
+    private async void OnStateChanged(object? sender, EventArgs e)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AppState.Changed -= OnStateChanged;
+    }
+}

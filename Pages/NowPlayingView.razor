@@ -1,0 +1,101 @@
+@page "/nowplaying"
+@inject PlayerService Player
+@inject LyricsService Lyrics
+
+<PageTitle>正在播放 — MediaMusic</PageTitle>
+
+@* ── Now Playing full page (Figma: 正在播放、歌词与频谱) ── *@
+<div class="relative flex h-full overflow-hidden">
+    @* Ambient background glow from album art *@
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accent/15 blur-[120px]"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-purple-500/10 blur-[100px]"></div>
+    </div>
+
+    @* ── Left Panel: Album art + metadata ── *@
+    <div class="relative z-10 flex w-[45%] flex-col items-center justify-center p-10 gap-6">
+        @* Album cover *@
+        <div class="w-64 h-64 rounded-2xl bg-surface-variant overflow-hidden shadow-2xl shadow-accent/10">
+            @if (!string.IsNullOrEmpty(Player.State.CurrentTrack?.CoverPath))
+            {
+                <img src="@Player.State.CurrentTrack.CoverPath" alt="Cover" class="w-full h-full object-cover" />
+            }
+            else
+            {
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/20 to-purple-900/40">
+                    <svg class="w-20 h-20 text-accent/40" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+                    </svg>
+                </div>
+            }
+        </div>
+
+        @* Song metadata *@
+        <div class="text-center space-y-1">
+            <h1 class="text-2xl font-bold">@(Player.State.CurrentTrack?.Title ?? "Neon Horizon")</h1>
+            <p class="text-on-surface/50">
+                @(Player.State.CurrentTrack?.ArtistName ?? "Synthetic Dreams")
+                @if (Player.State.CurrentTrack?.AlbumTitle is not null)
+                {
+                    <span> • 专辑 @Player.State.CurrentTrack.Year</span>
+                }
+            </p>
+        </div>
+
+        @* Quality badges *@
+        <div class="flex gap-2">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium tracking-wide">高解析度音频</span>
+            @if (Player.State.CurrentTrack?.Format is not null)
+            {
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-variant text-on-surface/50 font-mono">
+                    @Player.State.CurrentTrack.Format.ToUpper() @(Player.State.CurrentTrack.SampleRate > 0 ? $"{Player.State.CurrentTrack.SampleRate / 1000}kHz" : "")
+                </span>
+            }
+        </div>
+
+        @* Audio visualizer wave *@
+        <div class="flex items-end gap-[3px] h-8">
+            @for (int i = 0; i < 32; i++)
+            {
+                var h = 4 + Random.Shared.Next(24);
+                var d = i * 0.05;
+                <div class="w-[3px] rounded-full bg-accent/60"
+                     style="height: @(h)px; animation: eq-wave @(0.5 + d)s ease-in-out infinite alternate; animation-delay: @(d)s;"></div>
+            }
+        </div>
+    </div>
+
+    @* ── Right Panel: Lyrics ── *@
+    <div class="relative z-10 flex-1 flex flex-col justify-center px-12 py-10 overflow-hidden">
+        <div class="flex-1 overflow-y-auto flex flex-col justify-center gap-4 scrollbar-hide">
+            @if (Lyrics.Lines.Count == 0)
+            {
+                <div class="space-y-3 text-center">
+                    <p class="text-2xl text-on-surface/15 font-light italic">暂无歌词</p>
+                    <p class="text-sm text-on-surface/20">同名 .lrc 文件将自动匹配</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var line in Lyrics.Lines)
+                {
+                    var isActive = Lyrics.IsActive(line);
+                    <p class="transition-all duration-500 @(isActive
+                        ? "text-xl font-semibold text-on-surface"
+                        : "text-base text-on-surface/25 font-light")">
+                        @line.Text
+                    </p>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes eq-wave {
+        0%   { height: 4px; }
+        100% { height: 28px; }
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

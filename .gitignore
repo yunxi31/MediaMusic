@@ -1,0 +1,31 @@
+# .NET build output
+bin/
+obj/
+[Bb]uild[Bb]inary/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.swp
+
+# Tailwind / Node
+Frontend/node_modules/
+wwwroot/css/app.css
+
+# Runtime data (local DB, logs)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Native BASS binaries (user must download separately due to license)
+native/bass/*.dll

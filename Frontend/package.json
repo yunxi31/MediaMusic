@@ -1,0 +1,16 @@
+{
+  "name": "mediamusic-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tailwind CSS build toolchain for MediaMusic (output -> wwwroot/css/app.css)",
+  "scripts": {
+    "build": "tailwindcss -i ./input.css -o ../wwwroot/css/app.css",
+    "watch": "tailwindcss -i ./input.css -o ../wwwroot/css/app.css --watch",
+    "build:prod": "tailwindcss -i ./input.css -o ../wwwroot/css/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17",
+    "postcss": "^8.4.49",
+    "autoprefixer": "^10.4.20"
+  }
+}

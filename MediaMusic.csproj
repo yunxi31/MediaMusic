@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MediaMusic</RootNamespace>
+    <AssemblyName>MediaMusic</AssemblyName>
+    <Version>0.1.0</Version>
+    <Product>MediaMusic</Product>
+    <Company>Yunxi</Company>
+    <NoWarn>NU1903</NoWarn>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- NuGet packages (versions verified 2026-06) -->
+  <ItemGroup>
+    <!-- Blazor host (transitively brings Photino.NET + WebView) -->
+    <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+    <!-- Audio engine: BASS managed wrappers (native DLLs ship separately in native/bass) -->
+    <PackageReference Include="ManagedBass" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Mix" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Fx" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Flac" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Aac" Version="4.0.2" />
+    <!-- Persistence -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.28" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+  </ItemGroup>
+
+  <!-- wwwroot static assets must be copied to output so Photino can load index.html at runtime -->
+  <ItemGroup>
+    <Content Update="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Native BASS DLLs are downloaded manually into native/bass (not redistributed via NuGet for licensing) -->
+  <ItemGroup>
+    <None Include="native\bass\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="false" />
+  </ItemGroup>
+
+  <!-- Embed schema.sql so DbInitializer can read it at runtime -->
+  <ItemGroup>
+    <EmbeddedResource Include="Data\schema.sql" />
+  </ItemGroup>
+
+  <!-- Auto-build Tailwind in Release configuration -->
+  <Target Name="BuildTailwind" BeforeTargets="Build" Condition="'$(Configuration)'=='Release' And Exists('$(MSBuildProjectDirectory)\Frontend\node_modules')">
+    <Exec Command="npm --prefix $(MSBuildProjectDirectory)\Frontend run build:prod" />
+  </Target>
+
+</Project>

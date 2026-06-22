@@ -1,0 +1,38 @@
+@* Sidebar navigation (Figma: Library page left panel) *@
+@inject NavigationManager Nav
+
+<nav class="flex w-56 flex-col bg-surface border-r border-on-surface/10 h-full select-none">
+    @* Logo *@
+    <div class="flex items-center gap-2.5 px-5 py-4">
+        <svg class="w-7 h-7 text-accent" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+        </svg>
+        <span class="text-base font-bold tracking-tight">MediaMusic</span>
+    </div>
+
+    @* Navigation links *@
+    <ul class="flex-1 space-y-0.5 px-3 mt-2">
+        <SidebarLink Href="/" Icon="home" Label="首页" CurrentUri="@Nav.Uri" />
+        <SidebarLink Href="/discover" Icon="discover" Label="发现" CurrentUri="@Nav.Uri" />
+        <SidebarLink Href="/library" Icon="library" Label="音乐库" CurrentUri="@Nav.Uri" />
+        <SidebarLink Href="/playlists" Icon="playlist" Label="播放列表" CurrentUri="@Nav.Uri" />
+        <SidebarLink Href="/eq" Icon="eq" Label="均衡器" CurrentUri="@Nav.Uri" />
+        <SidebarLink Href="/settings" Icon="settings" Label="设置" CurrentUri="@Nav.Uri" />
+    </ul>
+
+    @* User profile footer *@
+    <div class="flex items-center gap-3 px-4 py-3 border-t border-on-surface/10">
+        <div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-sm">
+            🎧
+        </div>
+        <div class="min-w-0">
+            <p class="text-sm font-medium truncate">Audiophile User</p>
+            <span class="inline-block text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase">Premium</span>
+        </div>
+    </div>
+</nav>
+
+@* ── Inline sub-component for nav items ── *@
+@code {
+    // Renders a single sidebar nav link with icon + label
+}

@@ -1,0 +1,85 @@
+@* Step 2 – Library Setup (Figma: 引导页 - 曲库设置 Setup) *@
+
+<div class="flex flex-col items-center px-10 py-6 gap-4 text-center">
+    @* 3D Folder illustration *@
+    <div class="relative w-48 h-28 mb-1">
+        @* Layered folder shapes *@
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-32 h-20 rounded-xl border border-accent/20 bg-surface-variant/30 transform -rotate-6 translate-x-2 translate-y-1"></div>
+            <div class="w-32 h-20 rounded-xl border border-accent/30 bg-surface-variant/50 absolute transform rotate-3 -translate-x-1"></div>
+            <div class="w-32 h-20 rounded-xl border border-accent/40 bg-surface-variant/70 absolute"></div>
+        </div>
+        @* Scanning laser line *@
+        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 w-28 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent animate-pulse"></div>
+        @* Bottom neon glow *@
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-36 h-6 bg-accent/20 blur-xl rounded-full"></div>
+    </div>
+
+    @* Title & description *@
+    <div class="space-y-1">
+        <h2 class="text-xl font-bold">构建您的私人乐库</h2>
+        <p class="text-xs text-accent/70">(Build Your Private Library)</p>
+        <p class="text-xs text-on-surface/50 leading-relaxed">
+            深度扫描本地目录，自动提取无损元数据
+        </p>
+        <p class="text-[10px] text-on-surface/30">(Deep scan local directories, auto-extract lossless metadata)</p>
+    </div>
+
+    @* Folder list *@
+    @if (Roots.Count > 0)
+    {
+        <div class="w-full max-w-md max-h-24 overflow-y-auto space-y-1.5 pr-1">
+            @foreach (var root in Roots)
+            {
+                <div class="flex items-center justify-between bg-surface-variant/40 rounded-lg px-3 py-1.5 text-xs">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <svg class="w-3.5 h-3.5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span class="truncate text-on-surface/70">@root</span>
+                    </div>
+                    @if (!IsScanning)
+                    {
+                        <button class="text-red-400 hover:text-red-300 text-xs shrink-0 ml-2" @onclick="() => OnRemoveFolder.InvokeAsync(root)">移除</button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @* Scan progress *@
+    @if (IsScanning && Progress is not null)
+    {
+        <div class="w-full max-w-md space-y-2">
+            <div class="w-full bg-surface-variant rounded-full h-1.5">
+                <div class="bg-accent h-1.5 rounded-full transition-all duration-300"
+                     style="width: @(Progress.TotalFound > 0 ? (int)(Progress.Processed * 100.0 / Progress.TotalFound) : 0)%"></div>
+            </div>
+            <p class="text-xs text-on-surface/40">
+                @Progress.Processed / @Progress.TotalFound · <span class="truncate inline-block max-w-xs align-bottom">@System.IO.Path.GetFileName(Progress.CurrentFile)</span>
+            </p>
+        </div>
+    }
+
+    @* Action button *@
+    @if (!IsScanning)
+    {
+        <button class="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-accent text-on-accent font-medium hover:brightness-110 transition-all text-sm"
+                @onclick="OnAddFolder">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            选择音乐文件夹
+            <span class="text-xs opacity-70">(Select Music Folder)</span>
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public List<string> Roots { get; set; } = new();
+    [Parameter] public bool IsScanning { get; set; }
+    [Parameter] public bool ScanDone { get; set; }
+    [Parameter] public ScanProgressState? Progress { get; set; }
+    [Parameter] public EventCallback OnAddFolder { get; set; }
+    [Parameter] public EventCallback<string> OnRemoveFolder { get; set; }
+}

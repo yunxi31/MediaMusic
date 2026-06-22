@@ -1,0 +1,19 @@
+@* Album cover art with lazy-load + placeholder (PRD §2.1/2.2). *@
+
+<div class="shrink-0 overflow-hidden rounded bg-surface-variant flex items-center justify-center"
+     style="width:@(Size)px;height:@(Size)px">
+    @if (CoverBytes is { Length: > 0 })
+    {
+        <img src="data:@(MimeType);base64,@Convert.ToBase64String(CoverBytes)" alt="cover" class="w-full h-full object-cover" />
+    }
+    else
+    {
+        <span class="text-on-surface/30" style="font-size:@(Size * 0.4)px">🎵</span>
+    }
+</div>
+
+@code {
+    [Parameter] public int Size { get; set; } = 80;
+    [Parameter] public byte[]? CoverBytes { get; set; }
+    [Parameter] public string MimeType { get; set; } = "image/jpeg";
+}
