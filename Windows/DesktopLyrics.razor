@@ -2,6 +2,9 @@
    loading wwwroot/lyrics.html. The window is chromeless, transparent, top-most and
    click-through (Platform.ClickThroughService). Shares LyricsService singleton. *@
 @inject LyricsService Lyrics
+@inject PlayerService Player
+@implements IDisposable
+@using System.Timers
 
 <div class="flex h-full items-center justify-center text-center px-6">
     <div class="text-4xl font-bold drop-shadow-lg" style="color:rgb(var(--accent))">
@@ -11,7 +14,82 @@
 
 @code {
     private string? _current;
+    private Timer? _timer;
+    private string? _lastTrackPath;
 
-    // TODO: subscribe to PlayerService position updates and set _current to the
-    //       active LyricsLine.Text via LyricsService.GetActiveIndex(...).
+    protected override void OnInitialized()
+    {
+        Player.StateChanged += OnPlayerStateChanged;
+        
+        _timer = new Timer(250);
+        _timer.Elapsed += OnTimerElapsed;
+        _timer.Start();
+        
+        UpdateLyrics();
+    }
+
+    private void OnPlayerStateChanged(object? sender, EventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            UpdateLyrics();
+            StateHasChanged();
+        });
+    }
+
+    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            UpdateLyrics();
+            StateHasChanged();
+        });
+    }
+
+    private void UpdateLyrics()
+    {
+        var track = Player.State.CurrentTrack;
+        if (track == null)
+        {
+            _current = "♪ ♫ ♪";
+            return;
+        }
+
+        if (_lastTrackPath != track.FilePath)
+        {
+            _lastTrackPath = track.FilePath;
+            if (!string.IsNullOrEmpty(track.FilePath))
+            {
+                Lyrics.LoadForTrack(track.FilePath);
+            }
+        }
+
+        var lines = Lyrics.Lines;
+        if (lines == null || lines.Count == 0)
+        {
+            _current = track.Title ?? "♪ ♫ ♪";
+            return;
+        }
+
+        var pos = TimeSpan.FromMilliseconds(Player.State.PositionMs);
+        var idx = Lyrics.GetActiveIndex(pos);
+        if (idx >= 0 && idx < lines.Count)
+        {
+            _current = lines[idx].Text;
+        }
+        else
+        {
+            _current = "♪ ♫ ♪";
+        }
+    }
+
+    public void Dispose()
+    {
+        Player.StateChanged -= OnPlayerStateChanged;
+        if (_timer != null)
+        {
+            _timer.Elapsed -= OnTimerElapsed;
+            _timer.Dispose();
+        }
+    }
 }
