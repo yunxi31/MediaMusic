@@ -1,29 +1,54 @@
 @* Virtualized track list (PRD §2.2). Stub; real data bound to TrackRepository search results. *@
+@inject PlayerService Player
 
-<div class="flex h-full flex-col">
-    <div class="grid grid-cols-[2fr_1fr_1fr_60px] gap-2 border-b border-on-surface/10 px-3 py-2 text-xs uppercase tracking-wide text-on-surface/50">
+<div class="flex h-full flex-col select-none text-on-surface/90">
+    @* List Header *@
+    <div class="grid grid-cols-[2.5fr_1.5fr_1.5fr_80px] gap-4 border-b border-white/[0.04] px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-on-surface/40 bg-white/[0.005]">
         <span>标题</span>
         <span>艺术家</span>
         <span>专辑</span>
-        <span class="text-right">时长</span>
+        <span class="text-right pr-2">时长</span>
     </div>
-    <div class="flex-1 overflow-auto">
+    
+    @* List Body *@
+    <div class="flex-1 overflow-y-auto scrollbar-hide">
         @if (Tracks.Count == 0)
         {
-            <div class="p-8 text-center text-on-surface/40 text-sm">
-                曲库为空 · 拖入音频文件即播，或使用「曲库」页深度扫描本地目录。
+            <div class="flex flex-col items-center justify-center p-12 text-center text-on-surface/30 text-xs gap-2 h-full">
+                <svg class="w-8 h-8 text-on-surface/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 0L21 9m-1.5-3v13.5m-3-12h3m0 0l-10.5 3m0 0L3 12m6-3v13.5M3 12v6.75A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-15 1.5H1.5M18 10.5h1.5"/>
+                </svg>
+                <span>曲库为空 · 拖入音频文件即播，或使用「曲库」页深度扫描本地目录。</span>
             </div>
         }
         else
         {
-            <Virtualize Items="Tracks" TItem="MediaMusic.Data.Models.Track" Context="t" OverscanCount="10">
+            <Virtualize Items="Tracks" TItem="MediaMusic.Data.Models.Track" Context="t" OverscanCount="15">
                 <ItemContent>
-                    <div class="grid grid-cols-[2fr_1fr_1fr_60px] gap-2 px-3 py-2 text-sm hover:bg-surface-variant cursor-pointer"
+                    @{
+                        var isCurrent = Player.State.CurrentTrack?.Id == t.Id;
+                    }
+                    <div class="grid grid-cols-[2.5fr_1.5fr_1.5fr_80px] gap-4 px-6 py-3 text-xs items-center cursor-pointer border-b border-white/[0.02] hover:bg-white/[0.02] active:bg-white/[0.04] transition-all duration-200 group relative @(isCurrent ? "bg-neon-purple/[0.03]" : "")"
                          @onclick="() => OnPlay(t)">
-                        <span class="truncate">@t.Title</span>
-                        <span class="truncate text-on-surface/60">@t.ArtistName</span>
-                        <span class="truncate text-on-surface/60">@t.AlbumTitle</span>
-                        <span class="text-right text-on-surface/50 tabular-nums">@FormatMs(t.DurationMs)</span>
+                        
+                        @* Left Active Track Indicator Line *@
+                        @if (isCurrent)
+                        {
+                            <div class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-neon-purple shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                        }
+
+                        <span class="truncate font-medium transition-colors duration-200 @(isCurrent ? "text-neon-purple font-semibold" : "text-gray-200 group-hover:text-neon-purple")">
+                            @t.Title
+                        </span>
+                        <span class="truncate transition-colors duration-200 @(isCurrent ? "text-neon-purple/70" : "text-on-surface/50 group-hover:text-on-surface/80")">
+                            @t.ArtistName
+                        </span>
+                        <span class="truncate text-on-surface/40 group-hover:text-on-surface/60 transition-colors duration-200">
+                            @t.AlbumTitle
+                        </span>
+                        <span class="text-right text-on-surface/40 group-hover:text-on-surface/70 tabular-nums pr-2 transition-colors duration-200">
+                            @FormatMs(t.DurationMs)
+                        </span>
                     </div>
                 </ItemContent>
             </Virtualize>
@@ -44,3 +69,8 @@
         return $"{(int)t.TotalMinutes}:{t.Seconds:D2}";
     }
 }
+
+<style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

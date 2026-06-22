@@ -19,7 +19,9 @@ module.exports = {
         'on-surface-muted': 'rgb(var(--on-surface-muted) / <alpha-value>)',
         'surface-variant': 'rgb(var(--surface-variant) / <alpha-value>)',
         accent: 'rgb(var(--accent) / <alpha-value>)',
-        'on-accent': 'rgb(var(--on-accent) / <alpha-value>)'
+        'on-accent': 'rgb(var(--on-accent) / <alpha-value>)',
+        'neon-purple': 'rgb(var(--neon-purple) / <alpha-value>)',
+        'muted-gold': 'rgb(var(--muted-gold) / <alpha-value>)'
       },
       fontFamily: {
         sans: ['"Inter"', '"Microsoft YaHei"', '"Segoe UI"', 'system-ui', 'sans-serif']
