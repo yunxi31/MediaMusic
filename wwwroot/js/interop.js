@@ -43,7 +43,9 @@ window.mediamusic.drag = {
     init() {
         document.addEventListener('mousedown', (e) => {
             const dragRegion = e.target.closest('#titlebar-drag-region');
-            if (dragRegion && e.button === 0) {
+            if (e.button !== 0) return;
+
+            if (dragRegion || isChromelessTopDragSurface(e)) {
                 if (window.DotNet) {
                     window.DotNet.invokeMethodAsync('MediaMusic', 'StartDragWindow');
                 }
@@ -51,6 +53,23 @@ window.mediamusic.drag = {
         });
     }
 };
+
+function isChromelessTopDragSurface(e) {
+    if (e.clientY > 48) return false;
+
+    const interactiveSelector = [
+        'a',
+        'button',
+        'input',
+        'select',
+        'textarea',
+        '[role="button"]',
+        '[contenteditable="true"]',
+        '[data-no-window-drag]'
+    ].join(',');
+
+    return !e.target.closest(interactiveSelector);
+}
 
 // Initialize drag listener immediately.
 window.mediamusic.drag.init();
