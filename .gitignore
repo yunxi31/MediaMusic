@@ -29,3 +29,7 @@ Thumbs.db
 
 # Native BASS binaries (user must download separately due to license)
 native/bass/*.dll
+
+# Python scripts
+*.py
+
