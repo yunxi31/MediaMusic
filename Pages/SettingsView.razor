@@ -1,0 +1,796 @@
+@page "/settings"
+@using MediaMusic.Services
+@inject SettingsService Settings
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>设置 - MediaMusic</PageTitle>
+
+<div class="settings-page">
+    <!-- Header Titlebar (Figma Replication) -->
+    <div class="settings-header">
+        <span class="header-title">设置</span>
+        <div class="header-actions">
+            <!-- Search action -->
+            <button class="action-btn search-btn" title="搜索">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+            <!-- Window minimize -->
+            <button class="action-btn" title="最小化" @onclick="Minimize">
+                <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor" /></svg>
+            </button>
+            <!-- Window maximize -->
+            <button class="action-btn" title="最大化" @onclick="Maximize">
+                <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" stroke="currentColor" stroke-width="1" fill="none" /></svg>
+            </button>
+            <!-- Window close -->
+            <button class="action-btn close-btn" title="关闭" @onclick="Close">
+                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1" /></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main settings area -->
+    <div class="settings-body">
+        <!-- Left Sidebar Navigation -->
+        <div class="settings-sidebar">
+            <button class="sidebar-item @(ActiveTab == "audio" ? "active" : "")" @onclick='() => ActiveTab = "audio"'>
+                音频设置 (Audio)
+            </button>
+            <button class="sidebar-item @(ActiveTab == "shortcuts" ? "active" : "")" @onclick='() => ActiveTab = "shortcuts"'>
+                快捷键 (Shortcuts)
+            </button>
+            <button class="sidebar-item @(ActiveTab == "library" ? "active" : "")" @onclick='() => ActiveTab = "library"'>
+                曲库管理 (Library)
+            </button>
+            <button class="sidebar-item @(ActiveTab == "appearance" ? "active" : "")" @onclick='() => ActiveTab = "appearance"'>
+                外观 (Appearance)
+            </button>
+            <button class="sidebar-item @(ActiveTab == "about" ? "active" : "")" @onclick='() => ActiveTab = "about"'>
+                关于 (About)
+            </button>
+        </div>
+
+        <!-- Right Content Panels -->
+        <div class="settings-panel">
+            @if (ActiveTab == "audio")
+            {
+                <div class="panel-header">
+                    <h2>音频设置 (Audio)</h2>
+                </div>
+
+                <div class="panel-content">
+                    <!-- Output Device Dropdown -->
+                    <div class="setting-group">
+                        <label class="setting-label">Output Device</label>
+                        <div class="custom-select-wrapper">
+                            <select class="custom-select" value="@OutputDevice" @onchange="OnDeviceChange">
+                                <option value="System Default (WASAPI)">System Default (WASAPI)</option>
+                                <option value="Speakers (Realtek High Definition Audio)">Speakers (Realtek High Definition Audio)</option>
+                                <option value="ASIO: Focusrite USB ASIO">ASIO: Focusrite USB ASIO</option>
+                            </select>
+                            <span class="select-arrow">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Buffer Size Slider -->
+                    <div class="setting-group">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="setting-label">Buffer Size</label>
+                            <span class="setting-value font-mono">@BufferSize Samples</span>
+                        </div>
+                        <div class="slider-wrapper">
+                            @{
+                                var bufferPercent = (BufferSize - 64) / (2048.0 - 64) * 100.0;
+                            }
+                            <div class="slider-track-fill" style="width: @(bufferPercent)%"></div>
+                            <input type="range" min="64" max="2048" step="64" 
+                                   class="range-slider" 
+                                   value="@BufferSize" 
+                                   @oninput="OnBufferSizeInput" 
+                                   @onchange="SaveBufferSize" />
+                        </div>
+                        <div class="slider-labels">
+                            <span>Low Latency</span>
+                            <span>High Stability</span>
+                        </div>
+                    </div>
+
+                    <!-- Spacer Line -->
+                    <div class="divider"></div>
+
+                    <!-- Gapless Playback Switch -->
+                    <div class="setting-group flex items-center justify-between py-2">
+                        <div class="flex-1 pr-4">
+                            <label class="setting-label block mb-0.5">Gapless Playback</label>
+                            <span class="setting-description">Eliminate silence between consecutive tracks</span>
+                        </div>
+                        <button class="toggle-switch @(GaplessEnabled ? "on" : "")" @onclick="ToggleGapless" title="切换无缝播放">
+                            <span class="toggle-thumb"></span>
+                        </button>
+                    </div>
+
+                    <!-- Crossfade Duration Number Input -->
+                    <div class="setting-group flex items-center justify-between py-2">
+                        <div class="flex-1 pr-4">
+                            <label class="setting-label block mb-0.5">Crossfade Duration</label>
+                            <span class="setting-description">Overlap tracks during transition</span>
+                        </div>
+                        <div class="number-input-wrapper">
+                            <input type="number" min="0" max="10000" step="100"
+                                   class="number-input" 
+                                   value="@CrossfadeDurationMs" 
+                                   @oninput="OnCrossfadeInput" 
+                                   @onchange="SaveCrossfade" />
+                            <span class="input-suffix">ms</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (ActiveTab == "shortcuts")
+            {
+                <div class="panel-header">
+                    <h2>快捷键 (Shortcuts)</h2>
+                </div>
+                <div class="panel-content">
+                    <p class="text-xs text-neutral-500 mb-6">配置和修改全局播放快捷键，提升操作效率。</p>
+                    <div class="shortcuts-grid">
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">播放 / 暂停</span>
+                            <span class="shortcut-key">Space</span>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">下一首</span>
+                            <span class="shortcut-key">Ctrl + Right</span>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">上一首</span>
+                            <span class="shortcut-key">Ctrl + Left</span>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">音量增加</span>
+                            <span class="shortcut-key">Ctrl + Up</span>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">音量减少</span>
+                            <span class="shortcut-key">Ctrl + Down</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (ActiveTab == "library")
+            {
+                <div class="panel-header">
+                    <h2>曲库管理 (Library)</h2>
+                </div>
+                <div class="panel-content">
+                    <p class="text-xs text-neutral-500 mb-4">指定播放器扫描本地无损音频的文件夹路径。</p>
+                    
+                    <div class="folder-list mb-4">
+                        @foreach (var folder in LibraryFolders)
+                        {
+                            <div class="folder-item">
+                                <span class="folder-path text-xs text-neutral-200">@folder</span>
+                                <button class="folder-remove-btn" @onclick="() => RemoveFolder(folder)">
+                                    <svg class="w-4 h-4 text-neutral-500 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="flex gap-2">
+                        <input type="text" class="folder-input text-xs text-white" placeholder="输入文件夹路径..." @bind="NewFolderInput" />
+                        <button class="folder-add-btn text-xs" @onclick="AddFolder">添加目录</button>
+                    </div>
+                </div>
+            }
+            else if (ActiveTab == "appearance")
+            {
+                <div class="panel-header">
+                    <h2>外观 (Appearance)</h2>
+                </div>
+                <div class="panel-content">
+                    <p class="text-xs text-neutral-500 mb-6">管理软件的界面风格及主题切换。</p>
+                    <div class="theme-selection">
+                        <label class="setting-label block mb-3">界面主题</label>
+                        <div class="theme-grid">
+                            <div class="theme-card @(ThemeName == "dark" ? "active" : "")" @onclick='() => ChangeTheme("dark")'>
+                                <div class="theme-preview bg-[#0d0d12]">
+                                    <div class="preview-bar bg-white/5 w-full h-2"></div>
+                                    <div class="preview-body flex flex-1 w-full gap-1 p-1">
+                                        <div class="w-2 bg-white/5 h-full rounded-sm"></div>
+                                        <div class="flex-1 bg-white/2 h-full rounded-sm"></div>
+                                    </div>
+                                </div>
+                                <span class="theme-label">AMOLED 深色</span>
+                            </div>
+                            <div class="theme-card @(ThemeName == "light" ? "active" : "")" @onclick='() => ChangeTheme("light")'>
+                                <div class="theme-preview bg-[#f4f4f5]">
+                                    <div class="preview-bar bg-black/5 w-full h-2"></div>
+                                    <div class="preview-body flex flex-1 w-full gap-1 p-1">
+                                        <div class="w-2 bg-black/5 h-full rounded-sm"></div>
+                                        <div class="flex-1 bg-black/2 h-full rounded-sm"></div>
+                                    </div>
+                                </div>
+                                <span class="theme-label">极致浅色</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (ActiveTab == "about")
+            {
+                <div class="panel-header">
+                    <h2>关于 (About)</h2>
+                </div>
+                <div class="panel-content text-center py-6">
+                    <div class="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-neon-purple to-indigo-500 shadow-xl shadow-neon-purple/20 mx-auto mb-4">
+                        <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 0L21 9m-1.5-3v13.5m-3-12h3m0 0l-10.5 3m0 0L3 12m6-3v13.5M3 12v6.75A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-15 1.5H1.5M18 10.5h1.5"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-0.5">MediaMusic</h3>
+                    <p class="text-xs text-neutral-400 mb-4">Version 1.0.0 (Build 2026.06)</p>
+                    <p class="text-[11px] text-neutral-500 max-w-sm mx-auto leading-relaxed">
+                        基于 .NET 10 和 ManagedBass 音频库开发的高解析度本地无损音乐播放器。专为追求极致音质的音乐爱好者设计。
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string ActiveTab = "audio";
+
+    // Audio states
+    private string OutputDevice = "System Default (WASAPI)";
+    private int BufferSize = 512;
+    private bool GaplessEnabled = true;
+    private int CrossfadeDurationMs = 8; // Defaulting to 8ms matching Figma spec
+
+    // Library states
+    private List<string> LibraryFolders = new() { @"D:\LosslessMusic", @"C:\Users\Yunxi\Music" };
+    private string NewFolderInput = "";
+
+    // Appearance state
+    private string ThemeName = "dark";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load Settings
+        OutputDevice = await Settings.GetAsync<string>("output_device", "System Default (WASAPI)");
+        BufferSize = await Settings.GetAsync<int>("buffer_size", 512);
+
+        var gaplessVal = await Settings.GetAsync<string>("gapless_enabled", "true");
+        GaplessEnabled = gaplessVal == "true";
+
+        var crossfadeVal = await Settings.GetAsync<string>("crossfade_duration_ms", "8");
+        if (int.TryParse(crossfadeVal, out var cf))
+        {
+            CrossfadeDurationMs = cf;
+        }
+
+        ThemeName = await Settings.GetAsync<string>("theme", "dark");
+    }
+
+    private async Task OnDeviceChange(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            OutputDevice = e.Value.ToString() ?? "System Default (WASAPI)";
+            await Settings.SetAsync("output_device", OutputDevice);
+        }
+    }
+
+    private void OnBufferSizeInput(ChangeEventArgs e)
+    {
+        if (e.Value != null && int.TryParse(e.Value.ToString(), out var size))
+        {
+            BufferSize = size;
+        }
+    }
+
+    private async Task SaveBufferSize()
+    {
+        await Settings.SetAsync("buffer_size", BufferSize.ToString());
+    }
+
+    private async Task ToggleGapless()
+    {
+        GaplessEnabled = !GaplessEnabled;
+        await Settings.SetAsync("gapless_enabled", GaplessEnabled ? "true" : "false");
+    }
+
+    private void OnCrossfadeInput(ChangeEventArgs e)
+    {
+        if (e.Value != null && int.TryParse(e.Value.ToString(), out var ms))
+        {
+            CrossfadeDurationMs = ms;
+        }
+    }
+
+    private async Task SaveCrossfade()
+    {
+        await Settings.SetAsync("crossfade_duration_ms", CrossfadeDurationMs.ToString());
+    }
+
+    // Library operations
+    private void AddFolder()
+    {
+        if (!string.IsNullOrWhiteSpace(NewFolderInput) && !LibraryFolders.Contains(NewFolderInput))
+        {
+            LibraryFolders.Add(NewFolderInput);
+            NewFolderInput = "";
+        }
+    }
+
+    private void RemoveFolder(string folder)
+    {
+        LibraryFolders.Remove(folder);
+    }
+
+    // Appearance operations
+    private async Task ChangeTheme(string theme)
+    {
+        ThemeName = theme;
+        await Settings.SetAsync("theme", theme);
+        // Force ThemeService application if injected, for live visual testing
+    }
+
+    // Chromeless window action helpers
+    private async Task Minimize() => await JS.InvokeVoidAsync("mediamusic.window.minimize");
+    private async Task Maximize() => await JS.InvokeVoidAsync("mediamusic.window.maximize");
+    private async Task Close() => await JS.InvokeVoidAsync("mediamusic.window.close");
+}
+
+<style>
+    .settings-page {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background-color: #0c0d12;
+        color: #ffffff;
+        font-family: "Inter", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    }
+
+    /* Custom Header Titlebar */
+    .settings-header {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px 0 24px;
+        background-color: #0c0d12;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        user-select: none;
+    }
+    .header-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 0.5px;
+    }
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #737373;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .action-btn:hover {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .action-btn.close-btn:hover {
+        background-color: #ef4444;
+        color: #ffffff;
+    }
+    .search-btn {
+        margin-right: 6px;
+    }
+
+    /* Layout grid */
+    .settings-body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+    }
+
+    /* Sidebar selector navigation */
+    .settings-sidebar {
+        width: 200px;
+        border-right: 1px solid rgba(255, 255, 255, 0.03);
+        padding: 24px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background-color: #0c0d12;
+        flex-shrink: 0;
+    }
+    .sidebar-item {
+        width: 100%;
+        text-align: left;
+        padding: 10px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #c5a880; /* Muted Gold as in Mockup */
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar-item:hover {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+    .sidebar-item.active {
+        color: #a855f7; /* Highlighting matching purple color scheme */
+        background-color: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.15);
+    }
+
+    /* Settings content panel */
+    .settings-panel {
+        flex: 1;
+        padding: 32px 48px;
+        overflow-y: auto;
+        background-color: #0c0d12;
+    }
+    .panel-header {
+        margin-bottom: 24px;
+    }
+    .panel-header h2 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* White border as in Figma */
+    }
+    .panel-header h2::after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.08);
+        margin-top: 12px;
+    }
+    .panel-content {
+        max-width: 580px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Form and options styling */
+    .setting-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .setting-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #a3a3a3;
+        margin-bottom: 8px;
+    }
+    .setting-description {
+        font-size: 10px;
+        color: #525252;
+    }
+    .setting-value {
+        font-size: 11px;
+        font-weight: 600;
+        color: #a3a3a3;
+    }
+
+    /* Custom select drop down */
+    .custom-select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    .custom-select {
+        width: 100%;
+        background-color: #121319;
+        color: #e5e5e5;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 500;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: all 0.2s;
+    }
+    .custom-select:focus {
+        border-color: rgba(168, 85, 247, 0.4);
+        box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.2);
+    }
+    .select-arrow {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #737373;
+    }
+
+    /* Horizontal Slider custom range stylings */
+    .slider-wrapper {
+        position: relative;
+        width: 100%;
+        height: 6px;
+        background-color: #1e1f29;
+        border-radius: 3px;
+        margin: 12px 0 6px 0;
+        display: flex;
+        align-items: center;
+    }
+    .slider-track-fill {
+        position: absolute;
+        left: 0;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.4); /* Subtle white track in spec */
+        border-radius: 3px;
+        pointer-events: none;
+    }
+    .range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        outline: none;
+        margin: 0;
+        cursor: pointer;
+        position: relative;
+        z-index: 5;
+    }
+    .range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .range-slider:active::-webkit-slider-thumb {
+        transform: scale(1.2);
+    }
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        font-weight: 500;
+        color: #525252;
+        margin-top: 4px;
+    }
+
+    .divider {
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.08); /* Separator line matching Figma */
+        margin: 8px 0;
+    }
+
+    /* Toggle Switch Component */
+    .toggle-switch {
+        width: 44px;
+        height: 24px;
+        background-color: #1e1f29;
+        border-radius: 12px;
+        border: none;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+        outline: none;
+        flex-shrink: 0;
+    }
+    .toggle-switch.on {
+        background-color: #c0bbf2; /* Soft pastel purple switch as in Figma */
+    }
+    .toggle-thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toggle-switch.on .toggle-thumb {
+        transform: translateX(20px);
+    }
+
+    /* Number Input Style */
+    .number-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background-color: #121319;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 0 12px;
+        width: 90px;
+        height: 36px;
+    }
+    .number-input {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #ffffff;
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+        padding-right: 18px;
+        -moz-appearance: textfield;
+    }
+    .number-input::-webkit-outer-spin-button,
+    .number-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .input-suffix {
+        position: absolute;
+        right: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #525252;
+        pointer-events: none;
+    }
+
+    /* Shortcuts Tab */
+    .shortcuts-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .shortcut-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background-color: #121319;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+    }
+    .shortcut-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #a3a3a3;
+    }
+    .shortcut-key {
+        font-size: 11px;
+        font-family: ui-monospace, monospace;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e5e5e5;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    /* Library Tab */
+    .folder-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .folder-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background-color: #121319;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+    }
+    .folder-path {
+        font-family: ui-monospace, monospace;
+    }
+    .folder-remove-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 2px;
+    }
+    .folder-input {
+        flex: 1;
+        background-color: #121319;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 10px 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .folder-input:focus {
+        border-color: rgba(168, 85, 247, 0.4);
+    }
+    .folder-add-btn {
+        background-color: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        color: #a855f7;
+        padding: 0 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .folder-add-btn:hover {
+        background-color: #a855f7;
+        color: #ffffff;
+    }
+
+    /* Appearance Tab */
+    .theme-grid {
+        display: flex;
+        gap: 16px;
+    }
+    .theme-card {
+        flex: 1;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: #121319;
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        max-width: 140px;
+    }
+    .theme-card:hover {
+        border-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+    .theme-card.active {
+        border-color: #a855f7;
+        background-color: rgba(168, 85, 247, 0.05);
+    }
+    .theme-preview {
+        width: 100%;
+        height: 64px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .theme-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #a3a3a3;
+    }
+    .theme-card.active .theme-label {
+        color: #a855f7;
+    }
+</style>

@@ -30,6 +30,14 @@ Thumbs.db
 # Native BASS binaries (user must download separately due to license)
 native/bass/*.dll
 
-# Python scripts
+# Python / PowerShell scripts
 *.py
+*.ps1
 
+# Agent & temporary files / directories
+.agents/
+.workbuddy/
+scratch/
+/*.png
+/*.html
+/*.txt
