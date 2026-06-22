@@ -40,7 +40,8 @@
         }
 
         // Hydrate onboarding state from DB on first load.
-        var done = false; // Forced: always load onboarding.
+        var doneVal = await Settings.GetAsync<string>("onboarding_complete", "false");
+        var done = doneVal == "true";
         if (done && !AppState.IsOnboardingComplete)
         {
             AppState.SetOnboardingComplete(true);

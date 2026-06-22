@@ -29,12 +29,49 @@
     </a>
 </li>
 
+@inject NavigationManager Navigation
+@implements IDisposable
+
 @code {
     [Parameter] public string Href { get; set; } = "/";
     [Parameter] public string Icon { get; set; } = "home";
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string CurrentUri { get; set; } = "";
 
-    private bool IsActive => CurrentUri.TrimEnd('/').EndsWith(Href.TrimEnd('/')) ||
-                              (Href == "/" && (CurrentUri.EndsWith("/") || CurrentUri.EndsWith("/index")));
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private bool IsActive
+    {
+        get
+        {
+            try
+            {
+                var relativeCurrent = Navigation.ToBaseRelativePath(Navigation.Uri);
+                var queryIdx = relativeCurrent.IndexOf('?');
+                if (queryIdx >= 0) relativeCurrent = relativeCurrent.Substring(0, queryIdx);
+                var hashIdx = relativeCurrent.IndexOf('#');
+                if (hashIdx >= 0) relativeCurrent = relativeCurrent.Substring(0, hashIdx);
+                
+                var relativeHref = Href.Trim('/');
+                return relativeCurrent.Trim('/').Equals(relativeHref, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
 }
