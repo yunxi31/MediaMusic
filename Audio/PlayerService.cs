@@ -2,6 +2,7 @@ using ManagedBass;
 using MediaMusic.Data.Models;
 using MediaMusic.Data.Repositories;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace MediaMusic.Audio;
 
@@ -30,6 +31,7 @@ public sealed class PlayerService : IDisposable
     // ── NAudio state (fallback engine) ──
     private WaveOutEvent? _waveOut;
     private WaveStream? _waveStream;
+    private VolumeSampleProvider? _volumeProvider;
 
     // ── Play queue ──
     private readonly List<Track> _queue = new();
@@ -159,21 +161,12 @@ public sealed class PlayerService : IDisposable
 
     public void SetVolume(double volume)
     {
-        var v = Math.Clamp(volume, 0, 1);
+        // Allow up to 2.0 (200% / +6 dB software boost)
+        var v = Math.Clamp(volume, 0, 2.0);
         _state.Volume = v;
         _state.IsMuted = v == 0;
 
-        if (UseBass)
-        {
-            if (_bassChannel != 0)
-                Bass.ChannelSetAttribute(_bassChannel, ChannelAttribute.Volume, (float)v);
-        }
-        else
-        {
-            if (_waveOut != null)
-                _waveOut.Volume = (float)v;
-        }
-
+        ApplyVolume(_state.IsMuted ? 0 : v);
         OnStateChanged();
     }
 
@@ -445,8 +438,14 @@ public sealed class PlayerService : IDisposable
     private void PlayWithNaudio(Track track)
     {
         _waveStream = new MediaFoundationReader(track.FilePath);
-        _waveOut = new WaveOutEvent { Volume = (float)(_state.IsMuted ? 0 : _state.Volume) };
-        _waveOut.Init(_waveStream);
+        // Use VolumeSampleProvider so we can boost beyond 1.0 (software gain)
+        var sampleProvider = _waveStream.ToSampleProvider();
+        _volumeProvider = new VolumeSampleProvider(sampleProvider)
+        {
+            Volume = (float)Math.Clamp(_state.IsMuted ? 0 : _state.Volume, 0, float.MaxValue)
+        };
+        _waveOut = new WaveOutEvent();
+        _waveOut.Init(_volumeProvider);
         _waveOut.PlaybackStopped += OnNaudioStopped;
         _waveOut.Play();
 
@@ -489,7 +488,8 @@ public sealed class PlayerService : IDisposable
 
     private void ApplyVolume(double v)
     {
-        v = Math.Clamp(v, 0, 1);
+        // Allow up to 2.0 for software boost; BASS supports >1.0 natively
+        v = Math.Max(0, v);
         if (UseBass)
         {
             if (_bassChannel != 0)
@@ -497,8 +497,9 @@ public sealed class PlayerService : IDisposable
         }
         else
         {
-            if (_waveOut != null)
-                _waveOut.Volume = (float)v;
+            // VolumeSampleProvider supports values >1.0 for amplification
+            if (_volumeProvider != null)
+                _volumeProvider.Volume = (float)v;
         }
     }
 
@@ -568,6 +569,7 @@ public sealed class PlayerService : IDisposable
             }
             _waveStream?.Dispose();
             _waveStream = null;
+            _volumeProvider = null;
         }
     }
 
