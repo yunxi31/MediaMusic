@@ -1,5 +1,6 @@
 using MediaMusic.Audio;
 using MediaMusic.Platform;
+using MediaMusic.Platform.Win32;
 using MediaMusic.Services;
 using Photino.Blazor;
 
@@ -84,6 +85,17 @@ internal sealed class Program
             hotkeys.Register("vol_down", bindVolDown, () => { /* wire to volume control when AppState.Volume is implemented */ });
 
             hotkeys.SetEnabled(true);
+        });
+
+        // Photino chromeless mode strips WS_MINIMIZEBOX, so clicking the taskbar
+        // button no longer minimizes/restores the window. Re-add it via Win32 once
+        // the native HWND is actually valid (WindowCreated fires after Photino init).
+        app.MainWindow.RegisterWindowCreatedHandler((_, _) =>
+        {
+            var hwnd = app.MainWindow.WindowHandle;
+            if (hwnd == IntPtr.Zero) return;
+            var style = Win32Interop.GetStyle(hwnd);
+            Win32Interop.SetStyle(hwnd, style | Win32Interop.WS_MINIMIZEBOX);
         });
 
         // NOTE: additional windows (MiniPlayer / DesktopLyrics) are created on
