@@ -530,14 +530,15 @@
 
     .track-row {
         display: grid;
-        grid-template-columns: 42px minmax(150px, 2.2fr) minmax(100px, 1.3fr) minmax(130px, 1.6fr) 110px 58px;
+        grid-template-columns: 30px minmax(120px, 2.5fr) minmax(80px, 1.5fr) minmax(80px, 1.5fr) 80px 55px;
         align-items: center;
-        gap: 16px;
+        gap: 12px;
         width: 100%;
+        box-sizing: border-box;
     }
 
     .table-head {
-        padding: 8px 20px;
+        padding: 8px 12px;
         color: rgba(var(--on-surface), 0.45);
         font-size: 9px;
         font-weight: 700;
@@ -545,7 +546,7 @@
 
     .track-item {
         min-height: 38px;
-        padding: 8px 20px;
+        padding: 8px 12px;
         border-radius: 6px;
         color: rgba(var(--on-surface), 0.56);
         font-size: 10px;
@@ -588,6 +589,7 @@
     .track-duration {
         text-align: right;
         font-variant-numeric: tabular-nums;
+        overflow: visible;
     }
 
     .cover-obsidian {
