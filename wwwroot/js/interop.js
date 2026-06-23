@@ -96,5 +96,22 @@ window.mediamusic.utils = {
     }
 };
 
+// --- Synced Lyrics Auto-scroll ---
+window.mediamusic.lyrics = {
+    scrollToActive() {
+        const container = document.querySelector('.lyrics-container');
+        const activeItem = document.querySelector('.lyric-line-active');
+        if (container && activeItem) {
+            const containerHeight = container.clientHeight;
+            const itemTop = activeItem.offsetTop;
+            const itemHeight = activeItem.clientHeight;
+            container.scrollTo({
+                top: itemTop - containerHeight / 2 + itemHeight / 2,
+                behavior: 'smooth'
+            });
+        }
+    }
+};
+
 
 
