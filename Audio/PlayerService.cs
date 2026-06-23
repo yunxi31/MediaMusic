@@ -459,17 +459,30 @@ public sealed class PlayerService : IDisposable
     private void OnNaudioStopped(object? sender, StoppedEventArgs e)
     {
         if (_waveStream == null) return;
-        bool reachedEnd = _waveStream.CurrentTime >= _waveStream.TotalTime - TimeSpan.FromMilliseconds(200);
 
-        if (!reachedEnd) return; // manual stop, not end-of-track
+        // If stopped due to an error, don't attempt to loop
+        if (e.Exception != null)
+        {
+            _logger.LogError(e.Exception, "NAudio playback stopped due to an error.");
+            Next();
+            return;
+        }
 
         // Respect repeat-one
         if (_state.RepeatMode == RepeatMode.One)
         {
-            _waveStream.CurrentTime = TimeSpan.Zero;
-            _waveOut?.Play();
-            _state.PositionMs = 0;
-            OnStateChanged();
+            try
+            {
+                _waveStream.CurrentTime = TimeSpan.Zero;
+                _waveOut?.Play();
+                _state.PositionMs = 0;
+                OnStateChanged();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to repeat track in NAudio");
+                Next();
+            }
             return;
         }
 
