@@ -1,0 +1,772 @@
+@page "/notifications"
+@inject NavigationManager Nav
+
+<PageTitle>MediaMusic - 通知中心</PageTitle>
+
+<div class="notifications-page">
+    @* Glow effects *@
+    <div class="noti-glow noti-glow-a"></div>
+    <div class="noti-glow noti-glow-b"></div>
+
+    <div class="noti-inner">
+        @* Header *@
+        <header class="noti-header">
+            <div class="header-left">
+                <button @onclick="GoBack" class="back-button" title="返回">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h1>通知中心</h1>
+            </div>
+            
+            <button @onclick="ClearAll" class="clear-all-btn">
+                全部清除
+            </button>
+        </header>
+
+        @* Recent Notifications *@
+        <section class="noti-section">
+            <h2 class="section-title">最近通知</h2>
+            
+            @if (Notifications.Any())
+            {
+                <div class="noti-grid">
+                    @foreach (var item in Notifications)
+                    {
+                        <div class="noti-card">
+                            <div class="card-content">
+                                @* Icon column *@
+                                <div class="icon-wrapper">
+                                    @if (item.IconType == "success")
+                                    {
+                                        <div class="status-icon success-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                    }
+                                    else if (item.IconType == "firmware")
+                                    {
+                                        <div class="status-icon firmware-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    }
+                                    else if (item.IconType == "sync")
+                                    {
+                                        <div class="playlist-sync-thumb">
+                                            <div class="vinyl-record">
+                                                <div class="vinyl-center">
+                                                    <div class="vinyl-spindle"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (item.IconType == "warning")
+                                    {
+                                        <div class="status-icon warning-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                        </div>
+                                    }
+                                </div>
+
+                                @* Info column *@
+                                <div class="info-wrapper">
+                                    <div class="info-header">
+                                        <h3>@item.Title</h3>
+                                        <span class="timestamp">@item.Time</span>
+                                    </div>
+                                    
+                                    <p class="description">@item.Description</p>
+
+                                    @* Progress bar for downloading firmware *@
+                                    @if (item.IconType == "firmware" && item.ExtraState == "downloading")
+                                    {
+                                        <div class="firmware-progress-container">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill" style="width: 24%"></div>
+                                            </div>
+                                            <div class="progress-labels">
+                                                <span class="downloading-text">正在下载...</span>
+                                                <span class="percent-text">24%</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @* Link button for storage management *@
+                                    @if (item.IconType == "warning" && item.ExtraState == "storage")
+                                    {
+                                        <div class="storage-link-container">
+                                            <a @onclick='() => Nav.NavigateTo("/settings")' @onclick:preventDefault class="storage-link">
+                                                管理存储
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                        </svg>
+                    </div>
+                    <p>暂无新通知</p>
+                </div>
+            }
+        </section>
+
+        @* Recommendations and Features *@
+        <section class="recommendations-section">
+            <h2 class="section-title">推荐与特性</h2>
+            
+            <div class="promo-grid">
+                @* Card 1: Spatial Audio *@
+                <div class="promo-card spatial-audio-card">
+                    <div class="card-glow"></div>
+                    <div class="wave-bg">
+                        <svg viewBox="0 0 200 100" preserveAspectRatio="none" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.15">
+                            <path d="M0,90 C30,85 50,55 80,70 C110,85 120,50 150,65 C180,80 190,95 200,90" />
+                            <path d="M0,80 C20,70 40,40 70,55 C100,70 110,35 140,50 C170,65 185,85 200,75" />
+                        </svg>
+                    </div>
+
+                    <div class="promo-content">
+                        <div class="new-feature-badge">
+                            <svg class="badge-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75 0 011.28.53v15.88a.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                            </svg>
+                            <span>新特性</span>
+                        </div>
+                        
+                        <h3 class="promo-title">沉浸式空间音频</h3>
+                        <p class="promo-desc">体验下一代环绕声场，专为高端 DAC 和监听耳机优化。</p>
+                        
+                        <button class="promo-btn primary-btn">
+                            立即体验
+                        </button>
+                    </div>
+                </div>
+
+                @* Card 2: Hi-Res Master Mode *@
+                <div class="promo-card hires-mode-card">
+                    <div class="watermark-hq">HQ</div>
+
+                    <div class="promo-content">
+                        <div class="master-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        
+                        <h3 class="promo-title">Hi-Res 大师模式</h3>
+                        <p class="promo-desc">解锁高达 32-bit/384kHz 的无损音频播放与独家 DSP 滤波器。</p>
+                        
+                        <button class="promo-btn outline-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="lock-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span>解锁权限</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private List<NotificationItem> Notifications = new()
+    {
+        new NotificationItem(1, "success", "扫描完成", "18分钟前", "已添加 128 首无损音轨。", null),
+        new NotificationItem(2, "firmware", "固件更新", "1小时前", "音频引擎 2.1.0 可用。", "downloading"),
+        new NotificationItem(3, "sync", "播放列表同步", "3小时前", "“深邃氛围”同步成功。", null),
+        new NotificationItem(4, "warning", "存储警告", "昨天", "本地存储已达 92%。", "storage")
+    };
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/");
+    }
+
+    private void ClearAll()
+    {
+        Notifications.Clear();
+    }
+
+    private class NotificationItem
+    {
+        public int Id { get; }
+        public string IconType { get; }
+        public string Title { get; }
+        public string Time { get; }
+        public string Description { get; }
+        public string? ExtraState { get; }
+
+        public NotificationItem(int id, string iconType, string title, string time, string description, string? extraState)
+        {
+            Id = id;
+            IconType = iconType;
+            Title = title;
+            Time = time;
+            Description = description;
+            ExtraState = extraState;
+        }
+    }
+}
+
+<style>
+.notifications-page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background-color: #09090b;
+    color: #e4e4e7;
+    overflow-y: auto;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding-bottom: 96px; /* player controls safety */
+}
+
+/* Ambient Glow */
+.noti-glow {
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+}
+.noti-glow-a {
+    top: -50px;
+    right: 5%;
+    background: radial-gradient(circle, #a855f7, transparent 70%);
+}
+.noti-glow-b {
+    bottom: 20%;
+    left: -50px;
+    background: radial-gradient(circle, #4f46e5, transparent 70%);
+}
+
+.noti-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* Header */
+.noti-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(228, 228, 231, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+}
+.back-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.noti-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+
+.clear-all-btn {
+    padding: 6px 16px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    color: rgba(228, 228, 231, 0.8);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.clear-all-btn:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+/* Sections */
+.noti-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(228, 228, 231, 0.35);
+    margin-bottom: 16px;
+}
+
+/* Grid Layout for Notifications */
+.noti-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 16px;
+}
+@@media (min-width: 768px) {
+    .noti-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.noti-card {
+    position: relative;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.noti-card:hover {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.card-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.icon-wrapper {
+    flex-shrink: 0;
+}
+
+/* Status Icons */
+.status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.status-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.success-icon {
+    background: rgba(16, 185, 129, 0.08);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.firmware-icon {
+    background: rgba(99, 102, 241, 0.08);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.warning-icon {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+/* Playlist Sync Vinyl Record */
+.playlist-sync-thumb {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2e1065, #000000);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vinyl-record {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    top: 4px;
+    left: 4px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: repeating-radial-gradient(circle, #171717, #171717 1.5px, #262626 2px, #171717 2.5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: spin 6s linear infinite;
+}
+.vinyl-center {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6b21a8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.vinyl-spindle {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #e9d5ff;
+}
+
+@@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+/* Text details inside cards */
+.info-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.info-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+.info-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+.timestamp {
+    font-size: 10px;
+    color: rgba(228, 228, 231, 0.35);
+    flex-shrink: 0;
+}
+
+.description {
+    font-size: 12px;
+    color: rgba(228, 228, 231, 0.6);
+    line-height: 1.6;
+    margin: 4px 0 0 0;
+}
+
+/* Progress bar style */
+.firmware-progress-container {
+    margin-top: 12px;
+}
+.progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, #a855f7, #6366f1);
+    border-radius: 9999px;
+}
+.progress-labels {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 10px;
+}
+.downloading-text {
+    color: rgba(228, 228, 231, 0.4);
+}
+.percent-text {
+    color: #a855f7;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+/* Storage link style */
+.storage-link-container {
+    margin-top: 12px;
+}
+.storage-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #f87171;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.storage-link:hover {
+    color: #fca5a5;
+}
+.storage-link svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Empty state */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 0;
+    text-align: center;
+}
+.empty-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    color: rgba(228, 228, 231, 0.2);
+    margin-bottom: 16px;
+}
+.empty-icon-wrapper svg {
+    width: 32px;
+    height: 32px;
+}
+.empty-state p {
+    font-size: 13px;
+    color: rgba(228, 228, 231, 0.35);
+    margin: 0;
+}
+
+/* Recommendations and Features Grid */
+.recommendations-section {
+    margin-top: 48px;
+}
+
+.promo-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 20px;
+}
+@@media (min-width: 1024px) {
+    .promo-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.promo-card {
+    position: relative;
+    border-radius: 16px;
+    padding: 24px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.promo-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.promo-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 6px 0;
+}
+
+.promo-desc {
+    font-size: 12px;
+    color: rgba(228, 228, 231, 0.5);
+    line-height: 1.6;
+    margin: 0 0 24px 0;
+}
+
+.promo-btn {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+}
+
+/* Spatial Audio Card */
+.spatial-audio-card {
+    grid-column: span 1;
+    background: linear-gradient(135deg, #160d26, #09060f);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+@@media (min-width: 1024px) {
+    .spatial-audio-card {
+        grid-column: span 2;
+    }
+}
+
+.card-glow {
+    position: absolute;
+    bottom: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.25);
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.wave-bg {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 55%;
+    height: 65%;
+    pointer-events: none;
+    z-index: 1;
+}
+.wave-bg svg {
+    width: 100%;
+    height: 100%;
+}
+
+.new-feature-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    color: #c084fc;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    width: fit-content;
+}
+.badge-icon {
+    width: 11px;
+    height: 11px;
+}
+
+.spatial-audio-card .promo-desc {
+    color: rgba(167, 139, 250, 0.65);
+    max-w: 360px;
+}
+
+.primary-btn {
+    background: #ffffff;
+    color: #09090b;
+    border: none;
+}
+.primary-btn:hover {
+    background: #e2d6ff;
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.2);
+}
+
+/* Hi-Res Master Card */
+.hires-mode-card {
+    background: linear-gradient(135deg, #121214, #0b0b0c);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.watermark-hq {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: rgba(255, 255, 255, 0.015);
+    padding: 0px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.01);
+    border-radius: 6px;
+    user-select: none;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.master-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(245, 158, 11, 0.08);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    margin-bottom: 16px;
+}
+.master-icon-wrapper svg {
+    width: 18px;
+    height: 18px;
+}
+
+.outline-btn {
+    background: rgba(255, 255, 255, 0.01);
+    color: rgba(228, 228, 231, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    gap: 8px;
+}
+.outline-btn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+.lock-icon {
+    width: 13px;
+    height: 13px;
+}
+</style>
