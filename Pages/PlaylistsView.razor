@@ -3,105 +3,540 @@
 @using MediaMusic.Data.Models
 @using MediaMusic.Data.Repositories
 @using MediaMusic.Services
+@using MediaMusic.Audio
 @inject PlayerService Player
 @inject PlaylistRepository PlaylistRepo
 @inject TrackRepository TrackRepo
+@inject NavigationManager Nav
+@implements IDisposable
 
 <PageTitle>播放列表 - MediaMusic</PageTitle>
 
-<div class="playlist-page">
-    <div class="playlist-header">
-        <div class="cover-art-container">
-            <img src="/images/midnight_jazz.png" alt="Playlist Cover" class="cover-art" />
-        </div>
-        <div class="playlist-info">
-            <span class="playlist-label">播放列表</span>
-            <h1 class="playlist-title">@PlaylistName</h1>
-            <div class="playlist-meta">
-                <span>@TrackCount 首曲目</span>
-                <span>•</span>
-                <span>@TotalSize</span>
-                <span>•</span>
-                <span class="badge-hires">无损 FLAC</span>
+@if (!PlaylistId.HasValue)
+{
+    <div class="playlists-dashboard">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="dashboard-title">我的播放列表</h1>
+                <p class="dashboard-subtitle">共 @_playlists.Count 个自建歌单</p>
             </div>
-            
-            <div class="action-buttons">
-                <button class="btn-play-all" @onclick="PlayAll">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    全部播放
-                </button>
-                <button class="btn-shuffle" @onclick="ShufflePlay">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                        <polyline points="16 3 21 3 21 8"></polyline>
-                        <line x1="4" y1="20" x2="21" y2="3"></line>
-                        <polyline points="21 16 21 21 16 21"></polyline>
-                        <line x1="15" y1="15" x2="21" y2="21"></line>
-                        <line x1="4" y1="4" x2="9" y2="9"></line>
-                    </svg>
-                    随机播放
-                </button>
-                <button class="btn-add">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
-            </div>
+            <button class="btn-create-playlist" @onclick="OpenCreateDialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                新建播放列表
+            </button>
         </div>
-    </div>
 
-    <div class="tracks-header">
-        <div class="th-num">#</div>
-        <div class="th-title">曲目 / 歌手</div>
-        <div class="th-quality">音质</div>
-        <div class="th-duration">时长</div>
-    </div>
-
-    <div class="tracks-list">
-        @foreach (var (track, index) in Tracks.Select((t, i) => (t, i + 1)))
+        @if (_playlists.Count == 0)
         {
-            bool isActive = _activeTrackId == track.Id;
-            <div class="track-row @(isActive ? "active" : "")" @onclick="() => SetActiveTrack(track.Id)">
-                <div class="track-num">
-                    @if (isActive)
-                    {
-                        <div class="eq-bars">
-                            <div class="eq-bar"></div>
-                            <div class="eq-bar"></div>
-                            <div class="eq-bar"></div>
-                            <div class="eq-bar"></div>
+            <div class="playlists-empty-state">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4" />
+                    <polyline points="9 17 9 21 15 21 15 17" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                <p class="empty-title">暂无播放列表</p>
+                <p class="empty-subtitle">创建一个播放列表，将您喜爱的音乐整理在一起</p>
+                <button class="btn-create-playlist-empty" @onclick="OpenCreateDialog">
+                    立即创建
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="playlists-grid">
+                @foreach (var playlist in _playlists)
+                {
+                    var gradient = GetPlaylistGradient(playlist.Id);
+                    var trackCount = _playlistTrackCounts.GetValueOrDefault(playlist.Id, 0);
+                    <div class="playlist-card" @onclick="() => NavigateToPlaylist(playlist.Id)">
+                        <div class="card-cover-wrapper" style="background: @gradient">
+                            @if (!string.IsNullOrEmpty(_playlistCovers.GetValueOrDefault(playlist.Id)))
+                            {
+                                <img src="@_playlistCovers[playlist.Id]" alt="@playlist.Name" class="card-cover-img" />
+                            }
+                            else
+                            {
+                                <div class="card-cover-fallback">
+                                    <svg class="fallback-note-icon" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
+                                    </svg>
+                                </div>
+                            }
+
+                            <div class="card-play-overlay">
+                                <div class="card-play-btn" @onclick:stopPropagation="true" @onclick="() => PlayPlaylistAsync(playlist.Id)">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                    }
-                    else
-                    {
-                        @index
-                    }
-                </div>
-                <div class="track-info">
-                    <span class="track-title">@track.Title</span>
-                    <span class="track-artist">@track.ArtistName</span>
-                </div>
-                <div class="track-quality">
-                    <span class="quality-badge">@GetQualityBadge(track)</span>
-                </div>
-                <div class="track-duration">
-                    <span>@FormatDuration(track.DurationMs)</span>
-                    <div class="track-actions">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                            <circle cx="5" cy="12" r="2"></circle>
-                            <circle cx="12" cy="12" r="2"></circle>
-                            <circle cx="19" cy="12" r="2"></circle>
-                        </svg>
+                        <div class="card-info">
+                            <h3 class="card-name">@playlist.Name</h3>
+                            <p class="card-tracks">@trackCount 首歌曲</p>
+                        </div>
+                        <button class="btn-card-delete" @onclick:stopPropagation="true" @onclick="() => DeletePlaylistAsync(playlist.Id)" title="删除歌单">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
                     </div>
-                </div>
+                }
             </div>
         }
     </div>
-</div>
+}
+else
+{
+    <div class="playlist-page">
+        <div class="back-navigation">
+            <button class="btn-back" @onclick="GoBackToPlaylists">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                返回播放列表
+            </button>
+        </div>
+
+        <div class="playlist-header">
+            <div class="cover-art-container" style="background: @GetPlaylistGradient(PlaylistId.Value)">
+                @if (!string.IsNullOrEmpty(_currentPlaylistCover))
+                {
+                    <img src="@_currentPlaylistCover" alt="@PlaylistName" class="cover-art" />
+                }
+                else
+                {
+                    <div class="cover-art-fallback">
+                        <svg fill="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
+                        </svg>
+                    </div>
+                }
+            </div>
+            <div class="playlist-info">
+                <span class="playlist-label">播放列表</span>
+                <h1 class="playlist-title">@PlaylistName</h1>
+                <div class="playlist-meta">
+                    <span>@TrackCount 首曲目</span>
+                    <span>•</span>
+                    <span>@TotalSize</span>
+                    <span>•</span>
+                    <span class="badge-hires">无损 FLAC</span>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-play-all" @onclick="PlayAll" disabled="@(Tracks.Count == 0)">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                        全部播放
+                    </button>
+                    <button class="btn-shuffle" @onclick="ShufflePlay" disabled="@(Tracks.Count == 0)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <polyline points="16 3 21 3 21 8"></polyline>
+                            <line x1="4" y1="20" x2="21" y2="3"></line>
+                            <polyline points="21 16 21 21 16 21"></polyline>
+                            <line x1="15" y1="15" x2="21" y2="21"></line>
+                            <line x1="4" y1="4" x2="9" y2="9"></line>
+                        </svg>
+                        随机播放
+                    </button>
+                    <button class="btn-add" @onclick="OpenAddTracksDialog" title="添加歌曲">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                    <button class="btn-delete" @onclick="() => DeletePlaylistAsync(PlaylistId.Value)" title="删除歌单">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        @if (Tracks.Count == 0)
+        {
+            <div class="tracks-empty-state">
+                <p>此播放列表内暂无曲目</p>
+                <button class="btn-add-tracks-inline" @onclick="OpenAddTracksDialog">添加曲目</button>
+            </div>
+        }
+        else
+        {
+            <div class="tracks-header">
+                <div class="th-num">#</div>
+                <div class="th-title">曲目 / 歌手</div>
+                <div class="th-quality">音质</div>
+                <div class="th-duration">时长</div>
+            </div>
+
+            <div class="tracks-list">
+                @foreach (var (track, index) in Tracks.Select((t, i) => (t, i + 1)))
+                {
+                    bool isActive = Player.State.CurrentTrack?.Id == track.Id;
+                    <div class="track-row @(isActive ? "active" : "")" @onclick="() => PlayTrack(track)">
+                        <div class="track-num">
+                            @if (isActive && Player.State.IsPlaying)
+                            {
+                                <div class="eq-bars">
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                </div>
+                            }
+                            else
+                            {
+                                @index
+                            }
+                        </div>
+                        <div class="track-info">
+                            <span class="track-title">@track.Title</span>
+                            <span class="track-artist">@track.ArtistName</span>
+                        </div>
+                        <div class="track-quality">
+                            <span class="quality-badge">@GetQualityBadge(track)</span>
+                        </div>
+                        <div class="track-duration">
+                            <span>@FormatDuration(track.DurationMs)</span>
+                            <button class="track-btn-remove" @onclick:stopPropagation="true" @onclick="() => RemoveTrack(track.Id)" title="移出播放列表">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@* ─── Create Playlist Modal ─── *@
+@if (_showCreateDialog)
+{
+    <div class="modal-backdrop" @onclick="CloseCreateDialog">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h2 class="modal-title">新建播放列表</h2>
+            <div class="modal-body">
+                <input type="text" 
+                       class="modal-input" 
+                       placeholder="播放列表名称" 
+                       @bind="_newPlaylistName" 
+                       @bind:event="oninput"
+                       @onkeydown="OnCreateInputKeyDown"
+                       autofocus />
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" @onclick="CloseCreateDialog">取消</button>
+                <button class="btn-modal-submit" @onclick="CreatePlaylistAsync" disabled="@string.IsNullOrWhiteSpace(_newPlaylistName)">创建</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* ─── Add Tracks Modal ─── *@
+@if (_showAddTracksDialog)
+{
+    <div class="modal-backdrop" @onclick="CloseAddTracksDialog">
+        <div class="modal-content modal-content-large" @onclick:stopPropagation="true">
+            <div class="modal-header-row">
+                <h2 class="modal-title">添加歌曲到播放列表</h2>
+                <button class="btn-modal-close" @onclick="CloseAddTracksDialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-search">
+                <input type="text" 
+                       class="modal-input search-input" 
+                       placeholder="搜索曲目、歌手..." 
+                       value="@_addTracksSearchQuery" 
+                       @oninput="OnAddTracksSearchInput" />
+            </div>
+
+            <div class="modal-tracks-list">
+                @if (_filteredLibraryTracks.Count == 0)
+                {
+                    <div class="modal-empty">
+                        <p>未找到匹配的音乐</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var track in _filteredLibraryTracks)
+                    {
+                        var isAlreadyAdded = Tracks.Any(t => t.Id == track.Id);
+                        <div class="modal-track-row">
+                            <div class="modal-track-info">
+                                <span class="modal-track-title">@track.Title</span>
+                                <span class="modal-track-artist">@track.ArtistName</span>
+                            </div>
+                            @if (isAlreadyAdded)
+                            {
+                                <span class="badge-added">已添加</span>
+                            }
+                            else
+                            {
+                                <button class="btn-track-add" @onclick="() => AddTrackToPlaylistAsync(track)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
 
 <style>
+    /* Playlists Dashboard Styles */
+    .playlists-dashboard {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 28px 36px 40px;
+        background: #111318;
+        color: #fff;
+        overflow-y: auto;
+    }
+    
+    .playlists-dashboard::-webkit-scrollbar { display: none; }
+    .playlists-dashboard { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+    }
+
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+    }
+
+    .dashboard-subtitle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+        margin-top: 4px;
+        font-weight: 500;
+    }
+
+    .btn-create-playlist {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #111318;
+        background: #c084fc;
+        border: none;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-create-playlist:hover {
+        background: #d8b4fe;
+        transform: scale(1.02);
+    }
+
+    /* Playlists Grid */
+    .playlists-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 24px;
+    }
+
+    .playlist-card {
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .playlist-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(168, 85, 247, 0.3);
+        transform: translateY(-4px);
+    }
+
+    .card-cover-wrapper {
+        aspect-ratio: 1/1;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-cover-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .card-cover-fallback {
+        color: rgba(255, 255, 255, 0.65);
+    }
+
+    .fallback-note-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .card-play-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .playlist-card:hover .card-play-overlay {
+        opacity: 1;
+    }
+
+    .card-play-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #a855f7;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+        transform: scale(0.9);
+        transition: transform 0.2s ease;
+    }
+
+    .card-play-overlay:hover .card-play-btn {
+        transform: scale(1.05);
+        background: #b55fe6;
+    }
+
+    .card-info {
+        margin-top: 12px;
+    }
+
+    .card-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.95);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-tracks {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 3px;
+        font-weight: 500;
+    }
+
+    .btn-card-delete {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s, color 0.2s;
+    }
+
+    .playlist-card:hover .btn-card-delete {
+        opacity: 1;
+    }
+
+    .btn-card-delete:hover {
+        color: #ef4444;
+    }
+
+    /* Empty States */
+    .playlists-empty-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 20px;
+        text-align: center;
+    }
+
+    .playlists-empty-state .empty-icon {
+        width: 64px;
+        height: 64px;
+        color: rgba(255, 255, 255, 0.15);
+        margin-bottom: 20px;
+    }
+
+    .empty-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 8px;
+    }
+
+    .empty-subtitle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 24px;
+        max-width: 320px;
+        line-height: 1.5;
+    }
+
+    .btn-create-playlist-empty {
+        padding: 10px 32px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #111318;
+        background: #c084fc;
+        border: none;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-create-playlist-empty:hover {
+        background: #d8b4fe;
+        transform: scale(1.02);
+    }
+
+    /* Playlist Details Page Styles */
     .playlist-page {
         height: 100%;
         display: flex;
@@ -110,11 +545,35 @@
         color: #ffffff;
         overflow-y: auto;
         background: linear-gradient(to bottom, #1a1625 0%, #111318 400px);
-        scrollbar-width: none; /* Firefox */
+        scrollbar-width: none;
     }
 
     .playlist-page::-webkit-scrollbar {
-        display: none; /* Safari & Chrome */
+        display: none;
+    }
+
+    .back-navigation {
+        margin-bottom: 20px;
+    }
+
+    .btn-back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.04);
     }
 
     .playlist-header {
@@ -132,12 +591,19 @@
         overflow: hidden;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.15);
         border: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .cover-art {
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+
+    .cover-art-fallback {
+        color: rgba(255, 255, 255, 0.65);
     }
 
     .playlist-info {
@@ -206,7 +672,7 @@
         transition: all 0.2s ease;
         white-space: nowrap;
     }
-    .btn-play-all:hover {
+    .btn-play-all:hover:not(:disabled) {
         background-color: #d8b4fe;
         transform: scale(1.02);
     }
@@ -226,9 +692,15 @@
         transition: all 0.2s ease;
         white-space: nowrap;
     }
-    .btn-shuffle:hover {
+    .btn-shuffle:hover:not(:disabled) {
         background-color: rgba(255,255,255,0.05);
         border-color: rgba(255,255,255,0.5);
+    }
+
+    .btn-play-all:disabled, .btn-shuffle:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
     }
 
     .btn-add {
@@ -248,6 +720,53 @@
         background-color: rgba(255,255,255,0.05);
         border-color: rgba(255,255,255,0.5);
         transform: scale(1.05);
+    }
+
+    .btn-delete {
+        background-color: transparent;
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-delete:hover {
+        background-color: rgba(239, 68, 68, 0.05);
+        border-color: rgba(239, 68, 68, 0.5);
+        transform: scale(1.05);
+    }
+
+    .tracks-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 14px;
+        gap: 16px;
+    }
+
+    .btn-add-tracks-inline {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        padding: 8px 24px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-add-tracks-inline:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 
     /* Track List */
@@ -349,24 +868,27 @@
         gap: 16px;
     }
 
-    .track-actions {
-        opacity: 0;
-        transition: opacity 0.2s;
+    .track-btn-remove {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
         display: flex;
         align-items: center;
-        color: #9ca3af;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.2s;
+        padding: 4px;
+        border-radius: 4px;
     }
 
-    .track-actions:hover {
-        color: #fff;
+    .track-row:hover .track-btn-remove {
+        opacity: 1;
     }
 
-    .track-row:hover .track-actions {
-        opacity: 1;
-    }
-    
-    .track-row.active .track-actions {
-        opacity: 1;
+    .track-btn-remove:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
     }
     
     /* Equalizer animation */
@@ -392,19 +914,260 @@
         0% { height: 20%; }
         100% { height: 100%; }
     }
+
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: #181b22;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 24px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.8), 0 0 32px rgba(168, 85, 247, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        animation: modal-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-content-large {
+        max-width: 540px;
+        max-height: 80vh;
+    }
+
+    @@keyframes modal-fade-in {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .btn-modal-close {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-modal-close:hover {
+        color: #ffffff;
+    }
+
+    .modal-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px 16px;
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .modal-input:focus {
+        border-color: rgba(168, 85, 247, 0.5);
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn-modal-cancel {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 8px 20px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-modal-cancel:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    .btn-modal-submit {
+        background: #c084fc;
+        color: #111318;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-modal-submit:hover:not(:disabled) {
+        background: #d8b4fe;
+    }
+
+    .btn-modal-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Modal Add Tracks Specifics */
+    .modal-search {
+        margin-bottom: 8px;
+    }
+
+    .modal-search .search-input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .modal-tracks-list {
+        overflow-y: auto;
+        max-height: 380px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    }
+
+    .modal-tracks-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .modal-tracks-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .modal-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 13px;
+    }
+
+    .modal-track-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .modal-track-row:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .modal-track-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-align: left;
+    }
+
+    .modal-track-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    .modal-track-artist {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.45);
+    }
+
+    .badge-added {
+        font-size: 11px;
+        font-weight: 600;
+        color: #a855f7;
+        background: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        padding: 4px 10px;
+        border-radius: 4px;
+    }
+
+    .btn-track-add {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.6);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-track-add:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        border-color: #fff;
+        transform: scale(1.05);
+    }
 </style>
 
 @code {
     [Parameter]
     public long? PlaylistId { get; set; }
 
-    private string PlaylistName = "Midnight Jazz";
-    private string TotalSize = "3.2 GB";
-    private int TrackCount = 48;
-    private List<Track> Tracks = new();
-    private long _activeTrackId = 2; // Default to match mock active state
+    private List<Playlist> _playlists = new();
+    private Dictionary<long, int> _playlistTrackCounts = new();
+    private Dictionary<long, string?> _playlistCovers = new();
 
-    protected override async Task OnInitializedAsync()
+    private string PlaylistName = "";
+    private string TotalSize = "0 GB";
+    private int TrackCount = 0;
+    private List<Track> Tracks = new();
+    private string? _currentPlaylistCover;
+
+    private bool _showCreateDialog;
+    private string _newPlaylistName = "";
+
+    private bool _showAddTracksDialog;
+    private string _addTracksSearchQuery = "";
+    private List<Track> _filteredLibraryTracks = new();
+
+    protected override void OnInitialized()
+    {
+        Player.StateChanged += OnPlayerStateChanged;
+    }
+
+    protected override async Task OnParametersSetAsync()
     {
         if (PlaylistId.HasValue && PlaylistId.Value > 0)
         {
@@ -412,8 +1175,29 @@
         }
         else
         {
-            LoadMockData();
+            await LoadAllPlaylistsAsync();
         }
+    }
+
+    private void OnPlayerStateChanged(object? sender, EventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAllPlaylistsAsync()
+    {
+        var playlistsList = (await PlaylistRepo.GetAllAsync()).ToList();
+        _playlistTrackCounts.Clear();
+        _playlistCovers.Clear();
+
+        foreach (var p in playlistsList)
+        {
+            var tracks = (await PlaylistRepo.GetTracksAsync(p.Id)).ToList();
+            _playlistTrackCounts[p.Id] = tracks.Count;
+            _playlistCovers[p.Id] = tracks.FirstOrDefault()?.CoverPath;
+        }
+
+        _playlists = playlistsList;
     }
 
     private async Task LoadPlaylistAsync(long id)
@@ -422,33 +1206,89 @@
         if (playlist != null)
         {
             PlaylistName = playlist.Name;
-            var loadedTracks = await PlaylistRepo.GetTracksAsync(id);
-            Tracks = loadedTracks.ToList();
+            var loadedTracks = (await PlaylistRepo.GetTracksAsync(id)).ToList();
+            Tracks = loadedTracks;
             TrackCount = Tracks.Count;
-            // Rough size estimation if missing
-            TotalSize = $"{Math.Max(0.1, Tracks.Count * 0.03):F1} GB"; 
+            _currentPlaylistCover = Tracks.FirstOrDefault()?.CoverPath;
+
+            // Compute total size and format nicely
+            long totalBytes = Tracks.Sum(t => (long)(t.BitRate > 0 && t.DurationMs > 0
+                ? (double)t.BitRate * t.DurationMs / 8.0
+                : 0));
+            TotalSize = FormatSize(totalBytes);
+        }
+        else
+        {
+            // Playlist not found, navigate back to list
+            Nav.NavigateTo("/playlists");
         }
     }
 
-    private void LoadMockData()
+    private void NavigateToPlaylist(long id)
     {
-        // Setup mock data to perfectly match the design screenshot
-        Tracks = new List<Track>
+        Nav.NavigateTo($"/playlists/{id}");
+    }
+
+    private void GoBackToPlaylists()
+    {
+        Nav.NavigateTo("/playlists");
+    }
+
+    private void OpenCreateDialog()
+    {
+        _newPlaylistName = "";
+        _showCreateDialog = true;
+    }
+
+    private void CloseCreateDialog()
+    {
+        _showCreateDialog = false;
+        _newPlaylistName = "";
+    }
+
+    private async Task OnCreateInputKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_newPlaylistName))
         {
-            new Track { Id = 1, Title = "Round Midnight", ArtistName = "Thelonious Monk", Format = "24-bit/96kHz", DurationMs = 312000 },
-            new Track { Id = 2, Title = "So What", ArtistName = "Miles Davis", Format = "24-bit/192kHz", DurationMs = 562000 },
-            new Track { Id = 3, Title = "Take Five", ArtistName = "The Dave Brubeck Quartet", Format = "16-bit/44.1kHz", DurationMs = 324000 },
-            new Track { Id = 4, Title = "Blue in Green", ArtistName = "Bill Evans", Format = "24-bit/96kHz", DurationMs = 337000 }
-        };
+            await CreatePlaylistAsync();
+        }
+        else if (e.Key == "Escape")
+        {
+            CloseCreateDialog();
+        }
+    }
+
+    private async Task CreatePlaylistAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newPlaylistName)) return;
+
+        var name = _newPlaylistName.Trim();
+        var newId = await PlaylistRepo.CreateAsync(name);
+        
+        CloseCreateDialog();
+        
+        // Navigate to the newly created playlist
+        Nav.NavigateTo($"/playlists/{newId}");
+    }
+
+    private async Task DeletePlaylistAsync(long id)
+    {
+        await PlaylistRepo.DeleteAsync(id);
+        if (PlaylistId.HasValue && PlaylistId.Value == id)
+        {
+            Nav.NavigateTo("/playlists");
+        }
+        else
+        {
+            await LoadAllPlaylistsAsync();
+        }
     }
 
     private void PlayAll()
     {
         if (Tracks.Any())
         {
-            // Simple mockup action - update active track to first
-            _activeTrackId = Tracks.First().Id;
-            StateHasChanged();
+            Player.PlayQueue(Tracks, 0);
         }
     }
 
@@ -456,15 +1296,94 @@
     {
         if (Tracks.Any())
         {
+            if (!Player.State.IsShuffled)
+            {
+                Player.ToggleShuffle();
+            }
             var rnd = new Random();
-            _activeTrackId = Tracks[rnd.Next(Tracks.Count)].Id;
-            StateHasChanged();
+            Player.PlayQueue(Tracks, rnd.Next(Tracks.Count));
         }
     }
 
-    private void SetActiveTrack(long trackId)
+    private async Task PlayPlaylistAsync(long playlistId)
     {
-        _activeTrackId = trackId;
+        var tracks = (await PlaylistRepo.GetTracksAsync(playlistId)).ToList();
+        if (tracks.Any())
+        {
+            Player.PlayQueue(tracks, 0);
+        }
+    }
+
+    private void PlayTrack(Track track)
+    {
+        var idx = Tracks.FindIndex(t => t.Id == track.Id);
+        if (idx >= 0)
+        {
+            Player.PlayQueue(Tracks, idx);
+        }
+        else
+        {
+            Player.Play(track);
+        }
+    }
+
+    private async Task RemoveTrack(long trackId)
+    {
+        if (PlaylistId.HasValue)
+        {
+            await PlaylistRepo.RemoveTrackAsync(PlaylistId.Value, trackId);
+            await LoadPlaylistAsync(PlaylistId.Value);
+        }
+    }
+
+    private async Task OpenAddTracksDialog()
+    {
+        _addTracksSearchQuery = "";
+        _showAddTracksDialog = true;
+        await FilterLibraryTracksAsync();
+    }
+
+    private void CloseAddTracksDialog()
+    {
+        _showAddTracksDialog = false;
+        _addTracksSearchQuery = "";
+        _filteredLibraryTracks.Clear();
+    }
+
+    private async Task OnAddTracksSearchInput(ChangeEventArgs e)
+    {
+        _addTracksSearchQuery = e.Value?.ToString() ?? "";
+        await FilterLibraryTracksAsync();
+    }
+
+    private async Task FilterLibraryTracksAsync()
+    {
+        _filteredLibraryTracks = (await TrackRepo.SearchAsync(null, null, null, _addTracksSearchQuery)).ToList();
+    }
+
+    private async Task AddTrackToPlaylistAsync(Track track)
+    {
+        if (PlaylistId.HasValue)
+        {
+            int sortOrder = Tracks.Count + 1;
+            await PlaylistRepo.AddTrackAsync(PlaylistId.Value, track.Id, sortOrder);
+            await LoadPlaylistAsync(PlaylistId.Value);
+        }
+    }
+
+    private string GetPlaylistGradient(long playlistId)
+    {
+        var gradients = new[]
+        {
+            "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)", // violet-to-indigo
+            "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)", // pink-to-purple
+            "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", // blue-to-darkblue
+            "linear-gradient(135deg, #10b981 0%, #059669 100%)", // emerald-to-teal
+            "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", // amber-to-orange
+            "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)", // indigo-to-pink
+            "linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)"  // teal-to-cyan
+        };
+        return gradients[playlistId % gradients.Length];
     }
 
     private string GetQualityBadge(Track track)
@@ -477,5 +1396,18 @@
         if (!durationMs.HasValue) return "--:--";
         var ts = TimeSpan.FromMilliseconds(durationMs.Value);
         return $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}";
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024L * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F1} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):F1} GB";
+    }
+
+    public void Dispose()
+    {
+        Player.StateChanged -= OnPlayerStateChanged;
     }
 }
