@@ -35,7 +35,12 @@ public sealed class DragDropHandler
         {
             if (Directory.Exists(path))
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+                var options = new EnumerationOptions
+                {
+                    IgnoreInaccessible = true,
+                    RecurseSubdirectories = true
+                };
+                foreach (var file in Directory.EnumerateFiles(path, "*.*", options)
                              .Where(f => SupportedExtensions.Contains(Path.GetExtension(f))))
                 {
                     tracks.Add(_metadataReader.Read(file));

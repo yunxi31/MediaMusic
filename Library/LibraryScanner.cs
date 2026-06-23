@@ -137,7 +137,12 @@ public sealed class LibraryScanner
 
     private static IEnumerable<string> EnumerateAudioFiles(string root)
     {
-        return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
+        var options = new EnumerationOptions
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = true
+        };
+        return Directory.EnumerateFiles(root, "*.*", options)
             .Where(f => SupportedExtensions.Contains(Path.GetExtension(f)));
     }
 

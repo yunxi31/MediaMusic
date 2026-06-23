@@ -34,6 +34,21 @@ public sealed class DbInitializer
             using var conn = _factory.Create();
             conn.Open();
             conn.Execute(schema);
+
+            // Database migration: Ensure Tracks has IsFavourite column
+            var hasIsFavourite = conn.Query("PRAGMA table_info(Tracks)")
+                .Any(row =>
+                {
+                    var dict = (IDictionary<string, object>)row;
+                    return dict.TryGetValue("name", out var name) &&
+                           string.Equals(name?.ToString(), "IsFavourite", StringComparison.OrdinalIgnoreCase);
+                });
+            if (!hasIsFavourite)
+            {
+                conn.Execute("ALTER TABLE Tracks ADD COLUMN IsFavourite INTEGER NOT NULL DEFAULT 0");
+                _logger.LogInformation("Database migration: Added IsFavourite column to Tracks table.");
+            }
+
             _seed.SeedIfEmpty(conn);
             _logger.LogInformation("Library database ready at {Path}", _factory.DatabasePath);
         }

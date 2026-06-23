@@ -38,6 +38,7 @@ internal sealed class Program
         else
             Console.WriteLine("BASS native DLLs not found — falling back to NAudio for audio playback.");
 
+
         // Configure the chromeless main window.
         app.MainWindow
             .SetIconFile("wwwroot/favicon.ico")

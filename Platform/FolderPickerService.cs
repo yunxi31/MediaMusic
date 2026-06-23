@@ -29,14 +29,13 @@ public static class FolderPicker
 
     private static string? ShowFolderDialog()
     {
-        var displayName = new string('\0', 260);
         var title = "选择音乐文件夹";
 
         var bi = new BROWSEINFO
         {
             hwndOwner = IntPtr.Zero,
             pidlRoot = IntPtr.Zero,
-            pszDisplayName = displayName,
+            pszDisplayName = IntPtr.Zero,
             lpszTitle = title,
             ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE,
             lpfn = IntPtr.Zero,
@@ -73,13 +72,13 @@ public static class FolderPicker
     private const uint BIF_RETURNONLYFSDIRS = 0x0001;
     private const uint BIF_NEWDIALOGSTYLE = 0x0040;
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct BROWSEINFO
     {
         public IntPtr hwndOwner;
         public IntPtr pidlRoot;
-        [MarshalAs(UnmanagedType.LPTStr)] public string pszDisplayName;
-        [MarshalAs(UnmanagedType.LPTStr)] public string lpszTitle;
+        public IntPtr pszDisplayName;
+        [MarshalAs(UnmanagedType.LPWStr)] public string lpszTitle;
         public uint ulFlags;
         public IntPtr lpfn;
         public IntPtr lParam;
