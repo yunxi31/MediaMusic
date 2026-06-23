@@ -129,11 +129,11 @@
                                 <div class="play-btn-circle">
                                     @if (isPlaying)
                                     {
-                                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                                     }
                                     else
                                     {
-                                        <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                     }
                                 </div>
                             </div>
@@ -203,11 +203,11 @@
                                 <div class="play-btn-circle">
                                     @if (isPlaying)
                                     {
-                                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                                     }
                                     else
                                     {
-                                        <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                     }
                                 </div>
                             </div>
@@ -960,19 +960,25 @@
 
     .album-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    @@media (max-width: 1280px) {
+        .album-grid {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
     }
 
     @@media (max-width: 1024px) {
         .album-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
     }
 
     @@media (max-width: 768px) {
         .album-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
     }
 
@@ -987,16 +993,16 @@
         position: relative;
         width: 100%;
         aspect-ratio: 1 / 1;
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
         background: #181b22;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
     }
 
     .album-card:hover .album-cover-wrapper {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(168, 85, 247, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
     }
 
     .album-cover-img {
@@ -1014,22 +1020,22 @@
     }
 
     .fallback-note-icon {
-        width: 36px;
-        height: 36px;
+        width: 24px;
+        height: 24px;
         color: rgba(255, 255, 255, 0.15);
     }
 
     .quality-badge {
         position: absolute;
-        top: 12px;
-        right: 12px;
-        font-size: 9px;
+        top: 6px;
+        right: 6px;
+        font-size: 8px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.85);
         background: rgba(0, 0, 0, 0.35);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 4px;
-        padding: 3px 6px;
+        padding: 2px 4px;
         backdrop-filter: blur(12px);
         font-family: monospace;
         letter-spacing: 0.02em;
@@ -1051,8 +1057,8 @@
     }
 
     .play-btn-circle {
-        width: 44px;
-        height: 44px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: #a855f7;
         color: #fff;
@@ -1069,9 +1075,28 @@
     }
 
     .album-title {
-        margin-top: 12px;
-        font-size: 13.5px;
+        margin-top: 8px;
+        font-size: 11.5px;
         font-weight: 700;
+        color: rgba(255, 255, 255, 0.95);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .album-artist {
+        margin-top: 2px;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.45);
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .album-card:hover .album-title {
+        color: #fff;
+    }ht: 700;
         color: rgba(255, 255, 255, 0.95);
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1098,18 +1123,18 @@
         position: relative;
     }
     .prism-shape {
-        width: 32px;
-        height: 52px;
+        width: 16px;
+        height: 26px;
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(168, 85, 247, 0.5) 100%);
         clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
         z-index: 2;
     }
     .prism-glow {
         position: absolute;
-        width: 50px;
-        height: 50px;
+        width: 25px;
+        height: 25px;
         background: #a855f7;
-        filter: blur(24px);
+        filter: blur(12px);
         opacity: 0.55;
         z-index: 1;
     }
@@ -1117,16 +1142,16 @@
     .cover-industrial {
         background: linear-gradient(180deg, #1f2026 0%, #0d0e12 100%);
         position: relative;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
     }
     .neon-line {
         position: absolute;
         top: 38%;
         left: 0;
         width: 100%;
-        height: 3.5px;
+        height: 2px;
         background: #f43f5e;
-        box-shadow: 0 0 10px #f43f5e, 0 0 24px #f43f5e;
+        box-shadow: 0 0 5px #f43f5e, 0 0 12px #f43f5e;
     }
 
     .cover-void {
@@ -1134,11 +1159,11 @@
         position: relative;
     }
     .void-circle {
-        width: 60px;
-        height: 60px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         background: #000;
-        box-shadow: 0 0 16px rgba(168, 85, 247, 0.5), inset 0 0 12px rgba(168, 85, 247, 0.3);
+        box-shadow: 0 0 8px rgba(168, 85, 247, 0.5), inset 0 0 6px rgba(168, 85, 247, 0.3);
         border: 1px solid rgba(168, 85, 247, 0.35);
     }
 
@@ -1148,32 +1173,32 @@
     }
     .synth-keys {
         display: flex;
-        gap: 3px;
+        gap: 1.5px;
         position: absolute;
-        bottom: 12px;
+        bottom: 6px;
         width: 80%;
         justify-content: center;
     }
     .synth-key {
-        width: 10px;
-        height: 24px;
+        width: 5px;
+        height: 12px;
         background: rgba(255, 255, 255, 0.12);
-        border-radius: 1px;
+        border-radius: 0.5px;
     }
     .synth-knobs {
         display: flex;
-        gap: 8px;
+        gap: 4px;
         position: absolute;
-        top: 24px;
+        top: 12px;
         justify-content: center;
         width: 80%;
     }
     .synth-knob {
-        width: 10px;
-        height: 10px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
+        box-shadow: 0 0 3px rgba(168, 85, 247, 0.3);
     }
 
     /* Context Menu Styles */
