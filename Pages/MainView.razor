@@ -119,6 +119,13 @@
                     </svg>
                     编辑
                 </button>
+                <button class="context-menu-item" @onclick="RemoveTrackAsync" style="color: #ef4444;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="margin-right: 8px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    移除
+                </button>
             </div>
         }
 
@@ -416,6 +423,23 @@
     private void CloseEditModal()
     {
         _showEditModal = false;
+    }
+
+    private async Task RemoveTrackAsync()
+    {
+        _showContextMenu = false;
+        if (_contextMenuTrack?.Track == null) return;
+
+        try
+        {
+            await TrackRepo.DeleteAsync(_contextMenuTrack.Track.Id);
+            await LoadData();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+            // Log/handle error
+        }
     }
 
     private async Task OpenEditModal()

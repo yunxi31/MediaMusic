@@ -122,4 +122,10 @@ public sealed class TrackRepository
               WHERE t.IsFavourite = 1
               ORDER BY t.LastPlayed DESC, t.Title ASC");
     }
+
+    public async Task DeleteAsync(long id)
+    {
+        using var conn = _factory.Create();
+        await conn.ExecuteAsync("DELETE FROM Tracks WHERE Id = @id", new { id });
+    }
 }
