@@ -47,9 +47,9 @@ public sealed class DragDropHandler
             }
         }
 
-        // TODO: push tracks into the PlayerService queue; honor autoPlay flag.
+        // Enqueue all tracks and start playback (uses PlayerService.PlayQueue)
         if (autoPlay && tracks.Count > 0)
-            _player.Play(tracks[0]);
+            _player.PlayQueue(tracks);
 
         _logger.LogInformation("Drag-drop resolved {Count} tracks.", tracks.Count);
         return tracks;

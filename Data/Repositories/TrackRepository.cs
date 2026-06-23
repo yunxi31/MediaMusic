@@ -69,11 +69,11 @@ public sealed class TrackRepository
             @"INSERT INTO Tracks (
                 FilePath, Title, ArtistId, AlbumId, GenreId, TrackNo, Year,
                 DurationMs, BitRate, SampleRate, Channels, Format, CoverPath,
-                DateAdded, LastPlayed, PlayCount
+                DateAdded, LastPlayed, PlayCount, IsFavourite
             ) VALUES (
                 @FilePath, @Title, @ArtistId, @AlbumId, @GenreId, @TrackNo, @Year,
                 @DurationMs, @BitRate, @SampleRate, @Channels, @Format, @CoverPath,
-                COALESCE(@DateAdded, datetime('now')), @LastPlayed, @PlayCount
+                COALESCE(@DateAdded, datetime('now')), @LastPlayed, @PlayCount, @IsFavourite
             )
             ON CONFLICT(FilePath) DO UPDATE SET
                 Title = COALESCE(excluded.Title, Tracks.Title),
@@ -87,7 +87,8 @@ public sealed class TrackRepository
                 SampleRate = COALESCE(excluded.SampleRate, Tracks.SampleRate),
                 Channels = COALESCE(excluded.Channels, Tracks.Channels),
                 Format = COALESCE(excluded.Format, Tracks.Format),
-                CoverPath = COALESCE(excluded.CoverPath, Tracks.CoverPath)
+                CoverPath = COALESCE(excluded.CoverPath, Tracks.CoverPath),
+                IsFavourite = COALESCE(excluded.IsFavourite, Tracks.IsFavourite)
             RETURNING Id", track);
     }
 
@@ -96,5 +97,29 @@ public sealed class TrackRepository
         using var conn = _factory.Create();
         await conn.ExecuteAsync(
             "UPDATE Tracks SET PlayCount = PlayCount + 1, LastPlayed = datetime('now') WHERE Id = @id", new { id });
+    }
+
+    /// <summary>Toggles a track's favourite status. Returns the new value.</summary>
+    public async Task<bool> ToggleFavouriteAsync(long id)
+    {
+        using var conn = _factory.Create();
+        await conn.ExecuteAsync(
+            "UPDATE Tracks SET IsFavourite = CASE WHEN IsFavourite = 0 THEN 1 ELSE 0 END WHERE Id = @id", new { id });
+        return await conn.QueryFirstOrDefaultAsync<bool>(
+            "SELECT IsFavourite FROM Tracks WHERE Id = @id", new { id });
+    }
+
+    /// <summary>Returns all favourited tracks.</summary>
+    public async Task<IEnumerable<Track>> GetFavouritesAsync()
+    {
+        using var conn = _factory.Create();
+        return await conn.QueryAsync<Track>(
+            @"SELECT t.*, ar.Name AS ArtistName, al.Title AS AlbumTitle, g.Name AS GenreName
+              FROM Tracks t
+              LEFT JOIN Artists ar ON t.ArtistId = ar.Id
+              LEFT JOIN Albums al ON t.AlbumId = al.Id
+              LEFT JOIN Genres g ON t.GenreId = g.Id
+              WHERE t.IsFavourite = 1
+              ORDER BY t.LastPlayed DESC, t.Title ASC");
     }
 }

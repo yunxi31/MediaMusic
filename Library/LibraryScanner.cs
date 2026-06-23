@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Threading.Channels;
 using MediaMusic.Data.Models;
 using MediaMusic.Data.Repositories;
@@ -18,6 +19,10 @@ public sealed class LibraryScanner
     private readonly TrackRepository _trackRepository;
     private readonly ILogger<LibraryScanner> _logger;
 
+    // Cover art cache directory (under wwwroot so Blazor can serve it)
+    private static readonly string CoverDir;
+    private static readonly object CoverLock = new();
+
     private static readonly HashSet<string> SupportedExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".flac", ".ape", ".wav", ".mp3", ".aac", ".m4a", ".ogg" };
 
@@ -35,6 +40,14 @@ public sealed class LibraryScanner
         _genreRepository = genreRepository;
         _trackRepository = trackRepository;
         _logger = logger;
+    }
+
+    static LibraryScanner()
+    {
+        // Cover art lives under wwwroot/covers/ so Photino's static file handler can serve it.
+        var baseDir = AppContext.BaseDirectory;          // e.g. bin/Debug/net10.0/
+        CoverDir = Path.Combine(baseDir, "wwwroot", "covers");
+        Directory.CreateDirectory(CoverDir);
     }
 
     /// <summary>
@@ -64,6 +77,11 @@ public sealed class LibraryScanner
             try
             {
                 var track = _metadataReader.Read(file);
+
+                // Extract and cache embedded cover art
+                var coverPath = SaveCoverArt(file);
+                if (coverPath != null)
+                    track.CoverPath = coverPath;
 
                 // Upsert Artist
                 var artistName = track.ArtistName;
@@ -121,6 +139,51 @@ public sealed class LibraryScanner
     {
         return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
             .Where(f => SupportedExtensions.Contains(Path.GetExtension(f)));
+    }
+
+    // ── Cover art caching ──
+
+    /// <summary>
+    /// Extracts embedded cover art and saves it to <c>wwwroot/covers/</c> as a
+    /// JPEG file named by a hash of the cover bytes. Returns the URL path
+    /// (<c>/covers/{hash}.jpg</c>) or <c>null</c> if no cover is found.
+    /// Deduplicated by content hash so albums with identical covers share one file.
+    /// </summary>
+    private static string? SaveCoverArt(string filePath)
+    {
+        try
+        {
+            using var tagFile = TagLib.File.Create(filePath);
+            var pictures = tagFile.Tag.Pictures;
+            if (pictures == null || pictures.Length == 0) return null;
+
+            var cover = pictures.FirstOrDefault(p => p.Type == TagLib.PictureType.FrontCover)
+                        ?? pictures[0];
+            var data = cover.Data.Data;
+            if (data == null || data.Length == 0) return null;
+
+            // Content-addressable: hash the bytes so duplicates share one file
+            var hash = SHA256.HashData(data);
+            var hashStr = Convert.ToHexStringLower(hash)[..16]; // take first 16 chars
+            var fileName = $"{hashStr}.jpg";
+            var fullPath = Path.Combine(CoverDir, fileName);
+
+            // Thread-safe: check-then-write under a lock to avoid race on same hash
+            if (!File.Exists(fullPath))
+            {
+                lock (CoverLock)
+                {
+                    if (!File.Exists(fullPath))
+                        File.WriteAllBytes(fullPath, data);
+                }
+            }
+
+            return $"/covers/{fileName}";
+        }
+        catch
+        {
+            return null; // non-fatal: cover is cosmetic
+        }
     }
 }
 

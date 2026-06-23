@@ -68,6 +68,11 @@
         var t = TimeSpan.FromMilliseconds(ms.Value);
         return $"{(int)t.TotalMinutes}:{t.Seconds:D2}";
     }
+
+    protected override void OnInitialized()
+    {
+        Player.StateChanged += (_, _) => InvokeAsync(StateHasChanged);
+    }
 }
 
 <style>

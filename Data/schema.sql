@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS Tracks (
     DateAdded   TEXT NOT NULL DEFAULT (datetime('now')),
     LastPlayed  TEXT,
     PlayCount   INTEGER NOT NULL DEFAULT 0,
+    IsFavourite INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (ArtistId) REFERENCES Artists(Id),
     FOREIGN KEY (AlbumId)  REFERENCES Albums(Id),
     FOREIGN KEY (GenreId)  REFERENCES Genres(Id)

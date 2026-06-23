@@ -20,6 +20,7 @@ public sealed class Track
     public string? DateAdded { get; set; }
     public string? LastPlayed { get; set; }
     public long PlayCount { get; set; }
+    public bool IsFavourite { get; set; }
 
     // Navigation helpers (populated on demand by repository joins)
     public string? ArtistName { get; set; }

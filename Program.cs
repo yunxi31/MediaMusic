@@ -30,6 +30,14 @@ internal sealed class Program
         // Store the main window instance for JSInvokable window controls.
         WindowHelper.MainWindow = app.MainWindow;
 
+        // Initialize the BASS audio engine (fails soft if native DLLs are absent).
+        var bassEngine = app.Services.GetRequiredService<BassEngine>();
+        bassEngine.Init();
+        if (bassEngine.IsAvailable)
+            Console.WriteLine("BASS engine initialized — using BASS for audio playback.");
+        else
+            Console.WriteLine("BASS native DLLs not found — falling back to NAudio for audio playback.");
+
         // Configure the chromeless main window.
         app.MainWindow
             .SetIconFile("wwwroot/favicon.ico")

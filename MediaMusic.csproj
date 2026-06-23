@@ -10,7 +10,7 @@
     <Version>0.1.0</Version>
     <Product>MediaMusic</Product>
     <Company>Yunxi</Company>
-    <NoWarn>NU1903</NoWarn>
+    <NoWarn>NU1903;CA1416</NoWarn>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -25,6 +25,7 @@
   <!-- NuGet packages (versions verified 2026-06) -->
   <ItemGroup>
     <!-- Blazor host (transitively brings Photino.NET + WebView) -->
+    <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Photino.Blazor" Version="4.0.13" />
     <!-- Audio engine: BASS managed wrappers (native DLLs ship separately in native/bass) -->
     <PackageReference Include="ManagedBass" Version="4.0.2" />
@@ -35,6 +36,7 @@
     <!-- Persistence -->
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.28" />
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 
   <!-- wwwroot static assets must be copied to output so Photino can load index.html at runtime -->

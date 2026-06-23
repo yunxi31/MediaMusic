@@ -74,3 +74,25 @@ function isChromelessTopDragSurface(e) {
 // Initialize drag listener immediately.
 window.mediamusic.drag.init();
 
+// --- Native platform bridges (folder picker, etc.) ---
+window.mediamusic.platform = {
+    // Shows a native Win32 folder-picker dialog (IFileOpenDialog + FOS_PICKFOLDERS).
+    // Returns the chosen path string, or null if the user cancelled.
+    // Delegates to the C# [JSInvokable("PickFolder")] static method on FolderPicker.
+    pickFolder() {
+        if (window.DotNet) {
+            return window.DotNet.invokeMethodAsync('MediaMusic', 'PickFolder');
+        }
+        return Promise.resolve(null);
+    }
+};
+
+// Measure element-relative click position for the progress bar seek.
+window.mediamusic.utils = {
+    getClickFraction(element, clientX) {
+        const rect = element.getBoundingClientRect();
+        if (rect.width <= 0) return 0;
+        return (clientX - rect.left) / rect.width;
+    }
+};
+
