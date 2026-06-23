@@ -573,6 +573,8 @@ public sealed class PlayerService : IDisposable
 
     private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
 
+    public void NotifyStateChanged() => OnStateChanged();
+
     // ── IDisposable ──
 
     public void Dispose()

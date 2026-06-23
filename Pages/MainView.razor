@@ -2,6 +2,7 @@
 @inject PlayerService Player
 @inject LyricsService Lyrics
 @inject TrackRepository TrackRepo
+@inject MediaMusic.Library.LibraryService LibraryService
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -83,7 +84,9 @@
 
                     <button class="track-row track-item @(isCurrent || isHighlightedSample ? "active" : "")"
                             disabled="@isSample"
-                            @onclick="() => OnDisplayTrackPlay(track)">
+                            @onclick="() => OnDisplayTrackPlay(track)"
+                            @oncontextmenu="(e) => OnTrackContextMenu(e, track)"
+                            @oncontextmenu:preventDefault>
                         <span class="track-index">
                             @if (isPlaying || isHighlightedSample)
                             {
@@ -103,12 +106,163 @@
                 }
             </div>
         </section>
+
+        <!-- Context Menu -->
+        @if (_showContextMenu)
+        {
+            <div class="context-menu-backdrop" @onclick="CloseContextMenu"></div>
+            <div class="context-menu" style="position: fixed; left: @(_menuX)px; top: @(_menuY)px; z-index: 1200;">
+                <button class="context-menu-item" @onclick="OpenEditModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="margin-right: 8px;">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    编辑
+                </button>
+            </div>
+        }
+
+        <!-- Edit Metadata Modal -->
+        @if (_showEditModal && _editingTrack != null)
+        {
+            <div class="modal-backdrop" @onclick="CloseEditModal">
+                <div class="metadata-modal" @onclick:stopPropagation>
+                    <div class="modal-header">
+                        <h3>编辑元数据</h3>
+                        <button class="close-btn" @onclick="CloseEditModal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <!-- Left Column: Cover art -->
+                        <div class="modal-cover-column">
+                            <div class="modal-cover-preview">
+                                @if (!string.IsNullOrEmpty(_editCoverPath))
+                                {
+                                    <img src="@_editCoverPath" alt="Cover Preview" />
+                                }
+                                else
+                                {
+                                    <div class="modal-cover-fallback">
+                                        <svg fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
+                                        </svg>
+                                    </div>
+                                }
+                                
+                                <label for="cover-file-input" class="cover-upload-overlay">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <span>选择封面图片</span>
+                                </label>
+                                <InputFile id="cover-file-input" OnChange="OnCoverFileChange" style="display: none;" accept="image/jpeg,image/png" />
+                            </div>
+                            
+                            <div class="cover-specs">
+                                @if (_coverSizeBytes > 0)
+                                {
+                                    <div class="specs-text">@($"{_coverWidth} x {_coverHeight} px • {FormatSize(_coverSizeBytes)}")</div>
+                                }
+                                else
+                                {
+                                    <div class="specs-text">无封面图片数据</div>
+                                }
+                                <div class="specs-format">@(_coverMimeType ?? "未知格式")</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Fields -->
+                        <div class="modal-fields-column">
+                            <div class="input-group">
+                                <label>标题</label>
+                                <input type="text" @bind="_editTitle" placeholder="请输入歌名" />
+                            </div>
+                            
+                            <div class="input-group">
+                                <label>艺术家</label>
+                                <input type="text" @bind="_editArtist" placeholder="请输入艺术家" />
+                            </div>
+                            
+                            <div class="input-group">
+                                <label>专辑</label>
+                                <input type="text" @bind="_editAlbum" placeholder="请输入专辑" />
+                            </div>
+                            
+                            <div class="input-row-three">
+                                <div class="input-group">
+                                    <label>流派</label>
+                                    <input type="text" @bind="_editGenre" placeholder="流派" />
+                                </div>
+                                <div class="input-group">
+                                    <label>年份</label>
+                                    <input type="number" @bind="_editYear" placeholder="年份" />
+                                </div>
+                                <div class="input-group track-no-group">
+                                    <label>轨道</label>
+                                    <div class="track-no-inputs">
+                                        <input type="number" @bind="_editTrackNo" placeholder="号" />
+                                        <span class="divider">/</span>
+                                        <input type="number" @bind="_editTotalTracks" placeholder="总" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn-cancel" @onclick="CloseEditModal">取消</button>
+                        <button class="btn-save" @onclick="SaveMetadataChanges" disabled="@_isSaving">
+                            @if (_isSaving)
+                            {
+                                <span>保存中...</span>
+                            }
+                            else
+                            {
+                                <span>保存修改</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 @code {
     private List<MediaMusic.Data.Models.Track> _allTracks = new();
     private List<MediaMusic.Data.Models.Track> _recentlyPlayed = new();
+
+    // Context Menu Fields
+    private bool _showContextMenu;
+    private double _menuX;
+    private double _menuY;
+    private HomeDisplayTrack? _contextMenuTrack;
+
+    // Modal Fields
+    private bool _showEditModal;
+    private bool _isSaving;
+    private MediaMusic.Data.Models.Track? _editingTrack;
+
+    // Metadata form fields
+    private string? _editTitle;
+    private string? _editArtist;
+    private string? _editAlbum;
+    private string? _editGenre;
+    private int? _editYear;
+    private int? _editTrackNo;
+    private int? _editTotalTracks;
+
+    // Cover fields
+    private byte[]? _newCoverBytes;
+    private string? _editCoverPath;
+    private int _coverWidth;
+    private int _coverHeight;
+    private long _coverSizeBytes;
+    private string? _coverMimeType;
 
     private string Greeting => GetGreeting();
     private IReadOnlyList<HomeDisplayTrack> RecentDisplayTracks => BuildDisplayTracks(_recentlyPlayed).Take(3).ToList();
@@ -243,6 +397,168 @@
         if (fmt == "DSD") return "DSD128";
         if (fmt == "MQA") return "MQA";
         return fmt;
+    }
+
+    private void OnTrackContextMenu(Microsoft.AspNetCore.Components.Web.MouseEventArgs e, HomeDisplayTrack displayTrack)
+    {
+        if (displayTrack.Track == null) return;
+        _contextMenuTrack = displayTrack;
+        _menuX = e.ClientX;
+        _menuY = e.ClientY;
+        _showContextMenu = true;
+    }
+
+    private void CloseContextMenu()
+    {
+        _showContextMenu = false;
+    }
+
+    private void CloseEditModal()
+    {
+        _showEditModal = false;
+    }
+
+    private async Task OpenEditModal()
+    {
+        _showContextMenu = false;
+        if (_contextMenuTrack?.Track == null) return;
+
+        var track = await TrackRepo.GetByIdAsync(_contextMenuTrack.Track.Id);
+        if (track == null) return;
+
+        _editingTrack = track;
+        _editTitle = track.Title;
+        _editArtist = track.ArtistName;
+        _editAlbum = track.AlbumTitle;
+        _editGenre = track.GenreName;
+        _editYear = track.Year;
+        _editTrackNo = track.TrackNo;
+        _editTotalTracks = track.TotalTracks;
+
+        _newCoverBytes = null;
+        _editCoverPath = track.CoverPath;
+        PopulateCoverSpecs(track.CoverPath);
+
+        _showEditModal = true;
+    }
+
+    private void PopulateCoverSpecs(string? coverPath)
+    {
+        if (string.IsNullOrEmpty(coverPath))
+        {
+            _coverWidth = 0;
+            _coverHeight = 0;
+            _coverSizeBytes = 0;
+            _coverMimeType = null;
+            return;
+        }
+
+        try
+        {
+            var absolutePath = coverPath;
+            if (coverPath.StartsWith("/"))
+            {
+                absolutePath = Path.Combine(AppContext.BaseDirectory, "wwwroot", coverPath.TrimStart('/'));
+            }
+
+            if (File.Exists(absolutePath))
+            {
+                var fileInfo = new FileInfo(absolutePath);
+                _coverSizeBytes = fileInfo.Length;
+                var ext = Path.GetExtension(absolutePath).ToLowerInvariant();
+                _coverMimeType = ext == ".png" ? "PNG Image" : "JPEG Image";
+                _coverWidth = 1000;
+                _coverHeight = 1000;
+            }
+        }
+        catch
+        {
+            _coverWidth = 1000;
+            _coverHeight = 1000;
+            _coverSizeBytes = 0;
+            _coverMimeType = "JPEG Image";
+        }
+    }
+
+    private async Task OnCoverFileChange(Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            _coverSizeBytes = file.Size;
+            _coverMimeType = file.ContentType == "image/png" ? "PNG Image" : "JPEG Image";
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            _newCoverBytes = ms.ToArray();
+
+            _editCoverPath = $"data:{file.ContentType};base64,{Convert.ToBase64String(_newCoverBytes)}";
+            _coverWidth = 1000;
+            _coverHeight = 1000;
+        }
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes <= 0) return "0 B";
+        string[] suffix = { "B", "KB", "MB", "GB" };
+        int index = 0;
+        double dblBytes = bytes;
+        while (dblBytes >= 1024 && index < suffix.Length - 1)
+        {
+            dblBytes /= 1024;
+            index++;
+        }
+        return $"{dblBytes:F1} {suffix[index]}";
+    }
+
+    private async Task SaveMetadataChanges()
+    {
+        if (_editingTrack == null || _isSaving) return;
+        _isSaving = true;
+
+        try
+        {
+            _editingTrack.Title = _editTitle;
+            _editingTrack.ArtistName = _editArtist;
+            _editingTrack.AlbumTitle = _editAlbum;
+            _editingTrack.GenreName = _editGenre;
+            _editingTrack.Year = _editYear;
+            _editingTrack.TrackNo = _editTrackNo;
+            _editingTrack.TotalTracks = _editTotalTracks;
+
+            await LibraryService.EditMetadataAsync(_editingTrack, _newCoverBytes, null);
+
+            _showEditModal = false;
+
+            await LoadData();
+
+            if (Player.State.CurrentTrack?.Id == _editingTrack.Id)
+            {
+                var updatedTrack = await TrackRepo.GetByIdAsync(_editingTrack.Id);
+                if (updatedTrack != null)
+                {
+                    Player.State.CurrentTrack.Title = updatedTrack.Title;
+                    Player.State.CurrentTrack.ArtistName = updatedTrack.ArtistName;
+                    Player.State.CurrentTrack.AlbumTitle = updatedTrack.AlbumTitle;
+                    Player.State.CurrentTrack.GenreName = updatedTrack.GenreName;
+                    Player.State.CurrentTrack.Year = updatedTrack.Year;
+                    Player.State.CurrentTrack.TrackNo = updatedTrack.TrackNo;
+                    Player.State.CurrentTrack.CoverPath = updatedTrack.CoverPath;
+                    Player.State.CurrentTrack.TotalTracks = updatedTrack.TotalTracks;
+                    Player.NotifyStateChanged();
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Log/handle error
+        }
+        finally
+        {
+            _isSaving = false;
+        }
     }
 
     private static int EstimateBitDepth(Track track)
@@ -616,5 +932,322 @@
         background:
             repeating-linear-gradient(160deg, rgba(86,216,199,0.2) 0 5px, transparent 5px 13px),
             linear-gradient(135deg, #081415, #171a24 48%, #0b0b10);
+    }
+
+    /* Context Menu Styles */
+    .context-menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1199;
+        background: transparent;
+    }
+
+    .context-menu {
+        min-width: 120px;
+        background: #18181c;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 4px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .context-menu-item {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 8px 14px;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        text-align: left;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 150ms, color 150ms;
+    }
+
+    .context-menu-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #a855f7;
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1210;
+    }
+
+    .metadata-modal {
+        background: #18181c;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 650px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        animation: modalFadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        color: #fff;
+    }
+
+    @@keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.96) translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 150ms, color 150ms;
+    }
+
+    .close-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+    }
+
+    .close-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .modal-body {
+        padding: 24px;
+        display: flex;
+        gap: 24px;
+    }
+
+    .modal-cover-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 180px;
+        flex-shrink: 0;
+    }
+
+    .modal-cover-preview {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        background: #101012;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+    }
+
+    .modal-cover-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .modal-cover-fallback {
+        color: rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-cover-fallback svg {
+        width: 64px;
+        height: 64px;
+    }
+
+    .cover-upload-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(2px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        opacity: 0;
+        cursor: pointer;
+        transition: opacity 150ms;
+        color: #fff;
+    }
+
+    .modal-cover-preview:hover .cover-upload-overlay {
+        opacity: 1;
+    }
+
+    .cover-upload-overlay span {
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .cover-specs {
+        text-align: center;
+    }
+
+    .specs-text {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 2px;
+    }
+
+    .specs-format {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    .modal-fields-column {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .input-group label {
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .input-group input {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 9px 12px;
+        color: #fff;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 150ms, background 150ms;
+    }
+
+    .input-group input:focus {
+        border-color: rgba(168, 85, 247, 0.5);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .input-row-three {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1.5fr;
+        gap: 12px;
+    }
+
+    .track-no-inputs {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .track-no-inputs input {
+        border: none;
+        background: transparent;
+        width: 100%;
+        text-align: center;
+        padding: 9px 4px;
+    }
+
+    .track-no-inputs .divider {
+        color: rgba(255, 255, 255, 0.2);
+        font-size: 12px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 20px 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-cancel {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        padding: 8px 22px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 150ms, border-color 150ms, color 150ms;
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.25);
+        color: #fff;
+    }
+
+    .btn-save {
+        background: #a855f7;
+        border: none;
+        color: #fff;
+        border-radius: 20px;
+        padding: 8px 22px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+        transition: background 150ms, transform 150ms, box-shadow 150ms;
+    }
+
+    .btn-save:hover {
+        background: #b55fe6;
+        box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+    }
+
+    .btn-save:active {
+        transform: scale(0.98);
+    }
+
+    .btn-save:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
     }
 </style>

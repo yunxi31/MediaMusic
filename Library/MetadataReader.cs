@@ -56,6 +56,9 @@ public sealed class MetadataReader
             if (tag.Track > 0)
                 info.TrackNo = (int)tag.Track;
 
+            if (tag.TrackCount > 0)
+                info.TotalTracks = (int)tag.TrackCount;
+
             // Technical properties from TagLib
             var props = tagFile.Properties;
             if (props != null)
