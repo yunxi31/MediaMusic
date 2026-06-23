@@ -48,6 +48,8 @@ internal sealed class Program
             .SetChromeless(true)
             .Center();
 
+
+
         // Surface unhandled exceptions to the user instead of dying silently.
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             app.MainWindow.ShowMessage("Fatal exception", e.ExceptionObject?.ToString() ?? string.Empty);

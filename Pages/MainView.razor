@@ -2,6 +2,7 @@
 @inject PlayerService Player
 @inject LyricsService Lyrics
 @inject TrackRepository TrackRepo
+@inject NavigationManager Nav
 @implements IDisposable
 
 <PageTitle>MediaMusic - 首页</PageTitle>
@@ -23,11 +24,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                 </button>
-                <NavLink href="/eq" class="icon-button" title="均衡器">
+                <a @onclick='() => Nav.NavigateTo("/eq")' @onclick:preventDefault style="cursor: pointer;" class="icon-button" title="均衡器">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
                     </svg>
-                </NavLink>
+                </a>
                 <div class="home-avatar" title="个人中心">
                     <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Avatar" />
                 </div>
@@ -37,7 +38,7 @@
         <section class="home-section">
             <div class="section-heading">
                 <h2>最近播放</h2>
-                <NavLink href="/library">查看全部 <span>›</span></NavLink>
+                <a @onclick='() => Nav.NavigateTo("/library")' @onclick:preventDefault style="cursor: pointer;">查看全部 <span>›</span></a>
             </div>
 
             <div class="recent-grid">

@@ -1,7 +1,9 @@
 @* Individual sidebar navigation link *@
 
 <li>
-    <a href="@Href"
+    <a @onclick="Navigate"
+       @onclick:preventDefault
+       style="cursor: pointer;"
        class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300
               @(IsActive ? "bg-gradient-to-r from-neon-purple/15 to-neon-purple/2 text-neon-purple font-semibold shadow-inner" : "text-on-surface/60 hover:bg-white/[0.04] hover:text-on-surface")">
         @switch (Icon)
@@ -37,6 +39,11 @@
     [Parameter] public string Icon { get; set; } = "home";
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string CurrentUri { get; set; } = "";
+
+    private void Navigate()
+    {
+        Navigation.NavigateTo(Href);
+    }
 
     protected override void OnInitialized()
     {

@@ -1,6 +1,7 @@
 @page "/metadata"
 @using MediaMusic.Data.Models
 @inject LibraryService Library
+@inject NavigationManager Navigation
 
 <PageTitle>元数据编辑 — MediaMusic</PageTitle>
 
@@ -8,7 +9,7 @@
     <div class="flex items-center justify-between border-b border-on-surface/10 px-4 py-3">
         <h1 class="text-lg font-semibold">元数据编辑</h1>
         <div class="flex gap-2 text-xs">
-            <NavLink class="hover:text-accent" href="/">返回</NavLink>
+            <a class="hover:text-accent" @onclick='() => Navigation.NavigateTo("/")' @onclick:preventDefault style="cursor: pointer;">返回</a>
         </div>
     </div>
 
