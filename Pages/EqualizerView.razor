@@ -226,68 +226,6 @@
                 </div>
             </div>
 
-            <!-- System & Data Card -->
-            <div class="card p-6 rounded-2xl shadow-xl">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="text-purple">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" />
-                        </svg>
-                    </div>
-                    <h2 class="text-base font-medium text-white">系统与数据</h2>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <!-- 界面主题 -->
-                    <div class="flex items-center justify-between py-3.5 px-1.5">
-                        <div class="flex items-center gap-3">
-                            <div class="text-neutral-500">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.01-1.712a15.9 15.9 0 001.671-2.757m0 0a3.001 3.001 0 014.056-4.056m-4.056 4.056a3.001 3.001 0 004.056-4.056M6.637 10.07l-.215-.338a.5.5 0 00-.696-.121L4.31 10.53a.5.5 0 00-.121.696l.215.338m5.313-1.493L13.12 6.84a1.5 1.5 0 012.122 0l2.918 2.918a1.5 1.5 0 010 2.122l-3.379 3.379m-3.379-3.379l3.379 3.379m0 0a3 3 0 01-4.243 4.243l-1.07-1.07" />
-                                </svg>
-                            </div>
-                            <span class="text-sm font-medium text-white">界面主题</span>
-                        </div>
-                        <span class="text-xs text-neutral-400 font-medium">深色 / AMOLED</span>
-                    </div>
-
-                    <div class="h-px bg-white-02"></div>
-
-                    <!-- 元数据编辑器 -->
-                    <div class="flex items-center justify-between py-3.5 px-1.5 hover:bg-white-02 rounded-xl cursor-pointer transition-all group"
-                         @onclick='() => Nav.NavigateTo("/metadata")'>
-                        <div class="flex items-center gap-3">
-                            <div class="text-neutral-500 group-hover:text-purple transition-colors">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                </svg>
-                            </div>
-                            <span class="text-sm font-medium text-white group-hover:text-purple transition-colors">元数据编辑器</span>
-                        </div>
-                        <div class="text-neutral-500 group-hover:text-purple transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="h-px bg-white-02"></div>
-
-                    <!-- 库文件夹 -->
-                    <div class="flex items-center justify-between py-3.5 px-1.5 hover:bg-white-02 rounded-xl cursor-pointer transition-all group"
-                         @onclick='() => Nav.NavigateTo("/settings")'>
-                        <div class="flex items-center gap-3">
-                            <div class="text-neutral-500 group-hover:text-purple transition-colors">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-                                </svg>
-                            </div>
-                            <span class="text-sm font-medium text-white group-hover:text-purple transition-colors">库文件夹</span>
-                        </div>
-                        <span class="text-xs text-neutral-400 group-hover:text-neutral-300 font-medium transition-colors">2 个位置</span>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
