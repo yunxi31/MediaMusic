@@ -19,6 +19,16 @@ public sealed class AppState
     /// <summary>Whether the user has completed the first-run onboarding wizard.</summary>
     public bool IsOnboardingComplete { get; private set; }
 
+    /// <summary>Whether the sidebar is collapsed to show only icons.</summary>
+    public bool IsSidebarCollapsed { get; private set; }
+
+    public void SetSidebarCollapsed(bool value)
+    {
+        if (IsSidebarCollapsed == value) return;
+        IsSidebarCollapsed = value;
+        OnChanged();
+    }
+
     /// <summary>Root directories chosen during onboarding / settings.</summary>
     public List<string> ScanRoots { get; } = new();
 
