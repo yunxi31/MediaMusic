@@ -69,6 +69,16 @@
                 }
             </button>
 
+            <button class="sidebar-item @(ActiveTab == "visualizer" ? "active" : "")" @onclick='() => ActiveTab = "visualizer"' title="频道样式">
+                <svg class="sidebar-item-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+                </svg>
+                @if (!IsSettingsSidebarCollapsed)
+                {
+                    <span class="sidebar-item-text">频道样式</span>
+                }
+            </button>
+
             <button class="sidebar-item @(ActiveTab == "advanced" ? "active" : "")" @onclick='() => ActiveTab = "advanced"' title="高级管理">
                 <svg class="sidebar-item-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
@@ -634,6 +644,272 @@
                     </div>
                 </div>
             }
+            else if (ActiveTab == "visualizer")
+            {
+                <!-- 频谱样式选择面板 -->
+                <div class="visualizer-page">
+                    <div class="visualizer-title-block">
+                        <h1 class="visualizer-title">频谱样式选择 <span class="visualizer-title-en">(Visualizer Style Selection)</span></h1>
+                        <p class="visualizer-subtitle">Customize your high-fidelity auditory display.</p>
+                    </div>
+
+                    <div class="visualizer-layout">
+                        <!-- Left Column: Preview -->
+                        <div class="visualizer-preview-container">
+                            <div class="preview-header">
+                                <div class="preview-current">
+                                    <div class="preview-waveform-icon">
+                                        <svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="preview-text">
+                                        <span class="preview-label">Currently Previewing</span>
+                                        <span class="preview-value">@GetStyleDisplayName(VisualizerStyle)</span>
+                                    </div>
+                                </div>
+                                <button class="preview-expand-btn" title="全屏">
+                                    <svg class="w-4 h-4 text-neutral-400 hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h4.5m-4.5 0v4.5m0-4.5L9 9M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m-11.25 11.25h4.5m-4.5 0v-4.5m0 4.5L9 15m11.25 5.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Preview Area -->
+                            <div class="preview-display">
+                                @if (VisualizerStyle == "classic_bars")
+                                {
+                                    <div class="classic-bars-preview">
+                                        @for (int i = 0; i < 24; i++)
+                                        {
+                                            var h = ClassicBarsHeights[i];
+                                            <div class="preview-bar" style="height: @(h)%;"></div>
+                                        }
+                                    </div>
+                                }
+                                else if (VisualizerStyle == "circular_pulse")
+                                {
+                                    <div class="circular-pulse-preview">
+                                        <div class="pulse-circle pulse-circle-1"></div>
+                                        <div class="pulse-circle pulse-circle-2"></div>
+                                        <div class="pulse-circle pulse-circle-3"></div>
+                                        <div class="pulse-dot"></div>
+                                    </div>
+                                }
+                                else if (VisualizerStyle == "minimalist_wave")
+                                {
+                                    <div class="minimalist-wave-preview">
+                                        <svg class="w-full h-full" viewBox="0 0 300 200" fill="none">
+                                            <path d="M 0,100 C 50,40 100,40 150,100 C 200,160 250,160 300,100" stroke="#c084fc" stroke-width="4.5" stroke-linecap="round" class="wave-path-1" />
+                                            <path d="M 0,100 C 50,60 100,60 150,100 C 200,140 250,140 300,100" stroke="rgba(192, 132, 252, 0.4)" stroke-width="2.5" stroke-linecap="round" class="wave-path-2" />
+                                        </svg>
+                                    </div>
+                                }
+                                else if (VisualizerStyle == "particle_field")
+                                {
+                                    <div class="particle-field-preview">
+                                        @for (int p = 0; p < 15; p++)
+                                        {
+                                            var left = ParticleLefts[p];
+                                            var delay = ParticleDelays[p];
+                                            var size = ParticleSizes[p];
+                                            var duration = ParticleDurations[p];
+                                            <div class="particle" style="left: @(left)%; width: @(size)px; height: @(size)px; animation-duration: @(duration)s; animation-delay: @(delay)s;"></div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="preview-footer">
+                                <span class="preview-track-pill">SAMPLE TRACK - 120BPM</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Settings Sections -->
+                        <div class="visualizer-controls-container">
+                            <!-- Styles Section -->
+                            <div class="control-card">
+                                <h2 class="section-heading">Styles</h2>
+                                <div class="styles-grid">
+                                    <!-- Classic Bars Card -->
+                                    <div class="style-card @(VisualizerStyle == "classic_bars" ? "active" : "")" @onclick='() => SelectVisualizerStyle("classic_bars")'>
+                                        <div class="style-icon-box">
+                                            <div class="mini-bar-chart">
+                                                <span class="m-bar m-bar-1"></span>
+                                                <span class="m-bar m-bar-2"></span>
+                                                <span class="m-bar m-bar-3"></span>
+                                                <span class="m-bar m-bar-4"></span>
+                                                <span class="m-bar m-bar-5"></span>
+                                            </div>
+                                        </div>
+                                        <div class="style-card-footer">
+                                            <span class="style-name">Classic Bars</span>
+                                            @if (VisualizerStyle == "classic_bars")
+                                            {
+                                                <span class="check-badge">
+                                                    <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Circular Pulse Card -->
+                                    <div class="style-card @(VisualizerStyle == "circular_pulse" ? "active" : "")" @onclick='() => SelectVisualizerStyle("circular_pulse")'>
+                                        <div class="style-icon-box">
+                                            <div class="mini-circular-pulse">
+                                                <div class="m-circle m-circle-1"></div>
+                                                <div class="m-circle m-circle-2"></div>
+                                                <div class="m-dot"></div>
+                                            </div>
+                                        </div>
+                                        <div class="style-card-footer">
+                                            <span class="style-name">Circular Pulse</span>
+                                            @if (VisualizerStyle == "circular_pulse")
+                                            {
+                                                <span class="check-badge">
+                                                    <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Minimalist Wave Card -->
+                                    <div class="style-card @(VisualizerStyle == "minimalist_wave" ? "active" : "")" @onclick='() => SelectVisualizerStyle("minimalist_wave")'>
+                                        <div class="style-icon-box">
+                                            <div class="mini-wave">
+                                                <svg viewBox="0 0 80 40" fill="none" class="w-full h-full text-current">
+                                                    <path d="M 5,20 C 20,5 35,5 45,20 C 55,35 65,35 75,20" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="style-card-footer">
+                                            <span class="style-name">Minimalist Wave</span>
+                                            @if (VisualizerStyle == "minimalist_wave")
+                                            {
+                                                <span class="check-badge">
+                                                    <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Particle Field Card -->
+                                    <div class="style-card @(VisualizerStyle == "particle_field" ? "active" : "")" @onclick='() => SelectVisualizerStyle("particle_field")'>
+                                        <div class="style-icon-box">
+                                            <div class="mini-particles">
+                                                <span class="m-part p-1"></span>
+                                                <span class="m-part p-2"></span>
+                                                <span class="m-part p-3"></span>
+                                                <span class="m-part p-4"></span>
+                                                <span class="m-part p-5"></span>
+                                                <span class="m-part p-6"></span>
+                                            </div>
+                                        </div>
+                                        <div class="style-card-footer">
+                                            <span class="style-name">Particle Field</span>
+                                            @if (VisualizerStyle == "particle_field")
+                                            {
+                                                <span class="check-badge">
+                                                    <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Parameters Section -->
+                            <div class="control-card">
+                                <h2 class="section-heading flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg>
+                                    Parameters
+                                </h2>
+                                
+                                <!-- Sensitivity Slider -->
+                                <div class="parameter-item mb-5">
+                                    <div class="parameter-label-row">
+                                        <span class="parameter-label">Sensitivity</span>
+                                        <span class="parameter-badge font-mono">@VisualizerSensitivity%</span>
+                                    </div>
+                                    <div class="parameter-slider-wrapper">
+                                        <div class="parameter-slider-fill" style="width: @(VisualizerSensitivity)%"></div>
+                                        <input type="range" min="0" max="100" 
+                                               class="parameter-range-slider" 
+                                               value="@VisualizerSensitivity" 
+                                               @oninput="OnSensitivityInput" 
+                                               @onchange="SaveSensitivity" />
+                                    </div>
+                                </div>
+
+                                <!-- Density Slider -->
+                                <div class="parameter-item">
+                                    <div class="parameter-label-row">
+                                        <span class="parameter-label">Density</span>
+                                        <span class="parameter-badge font-mono">@VisualizerDensity%</span>
+                                    </div>
+                                    <div class="parameter-slider-wrapper">
+                                        <div class="parameter-slider-fill" style="width: @(VisualizerDensity)%"></div>
+                                        <input type="range" min="0" max="100" 
+                                               class="parameter-range-slider" 
+                                               value="@VisualizerDensity" 
+                                               @oninput="OnDensityInput" 
+                                               @onchange="SaveDensity" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Advanced Options Section -->
+                            <div class="control-card">
+                                <h2 class="section-heading">Advanced Options</h2>
+                                
+                                <div class="advanced-option-row">
+                                    <div class="option-info">
+                                        <span class="option-title">Full Screen Mode</span>
+                                        <span class="option-desc">Start visualizer in full screen</span>
+                                    </div>
+                                    <button class="toggle-switch @(VisualizerFullscreen ? "on" : "")" @onclick="ToggleVisualizerFullscreen" title="切换全屏模式">
+                                        <span class="toggle-thumb">
+                                            @if (VisualizerFullscreen)
+                                            {
+                                                <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                </svg>
+                                            }
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <div class="advanced-option-row mt-5">
+                                    <div class="option-info">
+                                        <span class="option-title">Show Frequency Labels</span>
+                                        <span class="option-desc">Display Hz values on X-axis</span>
+                                    </div>
+                                    <button class="toggle-switch @(VisualizerShowHz ? "on" : "")" @onclick="ToggleVisualizerShowHz" title="切换显示频率标签">
+                                        <span class="toggle-thumb">
+                                            @if (VisualizerShowHz)
+                                            {
+                                                <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                </svg>
+                                            }
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -697,7 +973,26 @@
         ShortcutVolUp = await Settings.GetAsync("shortcut_vol_up", "Alt + Up") ?? "Alt + Up";
         ShortcutVolDown = await Settings.GetAsync("shortcut_vol_down", "Alt + Down") ?? "Alt + Down";
         ShortcutToggleMini = await Settings.GetAsync("shortcut_toggle_mini", "Ctrl + M") ?? "Ctrl + M";
+
+        VisualizerStyle = await Settings.GetAsync<string>("visualizer_style", "classic_bars") ?? "classic_bars";
+        VisualizerSensitivity = await Settings.GetAsync<int>("visualizer_sensitivity", 75);
+        VisualizerDensity = await Settings.GetAsync<int>("visualizer_density", 68);
+        VisualizerFullscreen = (await Settings.GetAsync<string>("visualizer_fullscreen", "true") ?? "true") == "true";
+        VisualizerShowHz = (await Settings.GetAsync<string>("visualizer_show_hz", "false") ?? "false") == "true";
     }
+
+    // Visualizer states
+    private string VisualizerStyle = "classic_bars";
+    private int VisualizerSensitivity = 75;
+    private int VisualizerDensity = 68;
+    private bool VisualizerFullscreen = true;
+    private bool VisualizerShowHz = false;
+
+    private readonly int[] ClassicBarsHeights = new[] { 20, 35, 70, 50, 40, 85, 45, 60, 80, 15, 30, 75, 45, 55, 35, 78, 52, 28, 70, 38, 20, 35, 70, 50 };
+    private readonly int[] ParticleLefts = new[] { 10, 25, 40, 55, 70, 85, 15, 30, 45, 60, 75, 90, 5, 50, 95 };
+    private readonly double[] ParticleDelays = new[] { 0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 0.2, 0.6, 1.0, 1.4, 1.8, 2.2, 2.5, 0.7, 1.9 };
+    private readonly int[] ParticleSizes = new[] { 3, 4, 3, 5, 4, 3, 5, 4, 3, 4, 3, 5, 4, 3, 4 };
+    private readonly double[] ParticleDurations = new[] { 3.5, 4.2, 3.8, 4.5, 3.9, 4.1, 4.8, 3.7, 4.0, 4.3, 3.6, 4.6, 4.4, 3.9, 4.7 };
 
     private async Task OnDeviceChange(ChangeEventArgs e)
     {
@@ -951,6 +1246,59 @@
     private void ClearTerminal()
     {
         TerminalLines.Clear();
+    }
+
+    private string GetStyleDisplayName(string style) => style switch
+    {
+        "classic_bars" => "Classic Bars",
+        "circular_pulse" => "Circular Pulse",
+        "minimalist_wave" => "Minimalist Wave",
+        "particle_field" => "Particle Field",
+        _ => "Classic Bars"
+    };
+
+    private async Task SelectVisualizerStyle(string style)
+    {
+        VisualizerStyle = style;
+        await Settings.SetAsync("visualizer_style", style);
+    }
+
+    private void OnSensitivityInput(ChangeEventArgs e)
+    {
+        if (e.Value != null && int.TryParse(e.Value.ToString(), out var val))
+        {
+            VisualizerSensitivity = val;
+        }
+    }
+
+    private async Task SaveSensitivity()
+    {
+        await Settings.SetAsync("visualizer_sensitivity", VisualizerSensitivity.ToString());
+    }
+
+    private void OnDensityInput(ChangeEventArgs e)
+    {
+        if (e.Value != null && int.TryParse(e.Value.ToString(), out var val))
+        {
+            VisualizerDensity = val;
+        }
+    }
+
+    private async Task SaveDensity()
+    {
+        await Settings.SetAsync("visualizer_density", VisualizerDensity.ToString());
+    }
+
+    private async Task ToggleVisualizerFullscreen()
+    {
+        VisualizerFullscreen = !VisualizerFullscreen;
+        await Settings.SetAsync("visualizer_fullscreen", VisualizerFullscreen ? "true" : "false");
+    }
+
+    private async Task ToggleVisualizerShowHz()
+    {
+        VisualizerShowHz = !VisualizerShowHz;
+        await Settings.SetAsync("visualizer_show_hz", VisualizerShowHz ? "true" : "false");
     }
 }
 
@@ -1873,4 +2221,493 @@
     }
     @@keyframes spin-anim { to { transform: rotate(360deg); } }
     .spin { animation: spin-anim 1s linear infinite; }
+
+    /* ── Visualizer Page Styles ── */
+    .visualizer-page {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-width: 900px;
+        padding-bottom: 40px;
+    }
+    .visualizer-title-block {
+        margin-bottom: 4px;
+    }
+    .visualizer-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.3px;
+        margin-bottom: 6px;
+    }
+    .visualizer-title-en {
+        font-size: 14px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.4);
+        margin-left: 6px;
+    }
+    .visualizer-subtitle {
+        font-size: 11.5px;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
+    }
+    .visualizer-layout {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* Preview Container */
+    .visualizer-preview-container {
+        background-color: #111318;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 480px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .preview-current {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .preview-waveform-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background-color: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .preview-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+    .preview-label {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.35);
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+    .preview-value {
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+    .preview-expand-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+    .preview-expand-btn:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .preview-display {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 20px 0;
+        background-color: #07080c;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 20px;
+        min-height: 300px;
+        position: relative;
+        overflow: hidden;
+    }
+    .preview-footer {
+        display: flex;
+        justify-content: center;
+    }
+    .preview-track-pill {
+        font-size: 9.5px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.4);
+        background-color: #121319;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 5px 14px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+    }
+
+    /* Controls Column */
+    .visualizer-controls-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .control-card {
+        background-color: #111318;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 14px;
+        padding: 20px 22px;
+        display: flex;
+        flex-direction: column;
+    }
+    .section-heading {
+        font-size: 14px;
+        font-weight: 700;
+        color: #e4d9ff;
+        margin-bottom: 16px;
+        letter-spacing: 0.2px;
+    }
+    .styles-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    .style-card {
+        background-color: #0c0d12;
+        border: 1.5px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+    .style-card:hover {
+        border-color: rgba(168, 85, 247, 0.35);
+        background: rgba(168, 85, 247, 0.02);
+    }
+    .style-card.active {
+        border-color: #c084fc;
+        background: rgba(168, 85, 247, 0.05);
+        box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+    }
+    .style-icon-box {
+        height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.3);
+        background-color: #07080c;
+        position: relative;
+    }
+    .style-card.active .style-icon-box {
+        color: #c084fc;
+    }
+    .style-card-footer {
+        padding: 10px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .style-name {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #e5e5e5;
+    }
+    .check-badge {
+        color: #c084fc;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Previews logic */
+    .classic-bars-preview {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 200px;
+        width: 100%;
+        padding: 0 10px;
+    }
+    .preview-bar {
+        width: 3.2%;
+        background: linear-gradient(180deg, #c084fc 0%, rgba(192, 132, 252, 0.2) 100%);
+        border-radius: 4px 4px 0 0;
+        box-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+        transform-origin: bottom;
+        animation: bar-fluctuate 1s ease-in-out infinite alternate;
+    }
+    .preview-bar:nth-child(1) { animation-delay: -0.2s; animation-duration: 0.9s; }
+    .preview-bar:nth-child(2) { animation-delay: -0.5s; animation-duration: 1.1s; }
+    .preview-bar:nth-child(3) { animation-delay: -0.1s; animation-duration: 1.3s; }
+    .preview-bar:nth-child(4) { animation-delay: -0.7s; animation-duration: 0.8s; }
+    .preview-bar:nth-child(5) { animation-delay: -0.3s; animation-duration: 1.0s; }
+    .preview-bar:nth-child(6) { animation-delay: -0.9s; animation-duration: 1.4s; }
+    .preview-bar:nth-child(7) { animation-delay: -0.4s; animation-duration: 0.9s; }
+    .preview-bar:nth-child(8) { animation-delay: -0.6s; animation-duration: 1.2s; }
+    .preview-bar:nth-child(9) { animation-delay: -0.2s; animation-duration: 1.1s; }
+    .preview-bar:nth-child(10) { animation-delay: -0.8s; animation-duration: 0.7s; }
+    .preview-bar:nth-child(11) { animation-delay: -0.3s; animation-duration: 1.3s; }
+    .preview-bar:nth-child(12) { animation-delay: -0.5s; animation-duration: 1.0s; }
+    .preview-bar:nth-child(13) { animation-delay: -0.1s; animation-duration: 0.9s; }
+    .preview-bar:nth-child(14) { animation-delay: -0.7s; animation-duration: 1.2s; }
+    .preview-bar:nth-child(15) { animation-delay: -0.4s; animation-duration: 1.4s; }
+    .preview-bar:nth-child(16) { animation-delay: -0.6s; animation-duration: 0.8s; }
+    .preview-bar:nth-child(17) { animation-delay: -0.2s; animation-duration: 1.1s; }
+    .preview-bar:nth-child(18) { animation-delay: -0.9s; animation-duration: 1.3s; }
+    .preview-bar:nth-child(19) { animation-delay: -0.5s; animation-duration: 1.0s; }
+    .preview-bar:nth-child(20) { animation-delay: -0.3s; animation-duration: 0.7s; }
+    .preview-bar:nth-child(21) { animation-delay: -0.4s; animation-duration: 1.2s; }
+    .preview-bar:nth-child(22) { animation-delay: -0.8s; animation-duration: 0.9s; }
+    .preview-bar:nth-child(23) { animation-delay: -0.1s; animation-duration: 1.3s; }
+    .preview-bar:nth-child(24) { animation-delay: -0.6s; animation-duration: 1.0s; }
+
+    @@keyframes bar-fluctuate {
+        0% { transform: scaleY(0.2); }
+        100% { transform: scaleY(1.0); }
+    }
+
+    /* Circular Pulse */
+    .circular-pulse-preview {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        width: 100%;
+    }
+    .pulse-circle {
+        position: absolute;
+        border: 2px solid rgba(192, 132, 252, 0.4);
+        border-radius: 50%;
+        animation: pulse-out 2.4s infinite cubic-bezier(0.215, 0.610, 0.355, 1);
+        box-shadow: 0 0 8px rgba(192, 132, 252, 0.15);
+    }
+    .pulse-circle-1 { animation-delay: 0s; }
+    .pulse-circle-2 { animation-delay: 0.8s; }
+    .pulse-circle-3 { animation-delay: 1.6s; }
+    .pulse-dot {
+        width: 16px;
+        height: 16px;
+        background-color: #c084fc;
+        border-radius: 50%;
+        box-shadow: 0 0 15px #c084fc;
+        z-index: 2;
+    }
+    @@keyframes pulse-out {
+        0% { width: 30px; height: 30px; opacity: 1; }
+        100% { width: 180px; height: 180px; opacity: 0; }
+    }
+
+    /* Minimalist Wave */
+    .minimalist-wave-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        width: 100%;
+    }
+    .wave-path-1 {
+        animation: wave-offset 6s linear infinite;
+        stroke-dasharray: 600;
+        stroke-dashoffset: 0;
+    }
+    .wave-path-2 {
+        animation: wave-offset-reverse 8s linear infinite;
+        stroke-dasharray: 600;
+        stroke-dashoffset: 0;
+    }
+    @@keyframes wave-offset {
+        0% { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: -600; }
+    }
+    @@keyframes wave-offset-reverse {
+        0% { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: 600; }
+    }
+
+    /* Particle Field */
+    .particle-field-preview {
+        position: relative;
+        height: 200px;
+        width: 100%;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #151322 0%, #07080c 100%);
+        border-radius: 6px;
+    }
+    .particle {
+        position: absolute;
+        background-color: #c084fc;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #c084fc;
+        opacity: 0;
+        bottom: 0;
+        animation: float-up infinite linear;
+    }
+    @@keyframes float-up {
+        0% { transform: translateY(220px) scale(0); opacity: 0; }
+        10% { opacity: 0.8; }
+        90% { opacity: 0.8; }
+        100% { transform: translateY(-20px) scale(1); opacity: 0; }
+    }
+
+    /* Sliders & Parameters styling */
+    .parameter-item {
+        display: flex;
+        flex-direction: column;
+    }
+    .parameter-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .parameter-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .parameter-badge {
+        font-size: 9.5px;
+        font-weight: 700;
+        color: #c084fc;
+        background-color: rgba(192, 132, 252, 0.1);
+        border: 1px solid rgba(192, 132, 252, 0.15);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    .parameter-slider-wrapper {
+        position: relative;
+        width: 100%;
+        height: 6px;
+        background-color: #1a1c24;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+    }
+    .parameter-slider-fill {
+        position: absolute;
+        left: 0;
+        height: 100%;
+        background-color: #c084fc;
+        box-shadow: 0 0 8px rgba(192, 132, 252, 0.5);
+        border-radius: 3px;
+        pointer-events: none;
+    }
+    .parameter-range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        outline: none;
+        margin: 0;
+        cursor: pointer;
+        position: relative;
+        z-index: 5;
+    }
+    .parameter-range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+    }
+
+    /* Advanced Options rows */
+    .advanced-option-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .option-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .option-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    .option-desc {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.35);
+    }
+    
+    /* Styles miniature elements */
+    .mini-bar-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 24px;
+    }
+    .m-bar {
+        width: 5px;
+        border-radius: 1px 1px 0 0;
+        background-color: currentColor;
+    }
+    .m-bar-1 { height: 10px; }
+    .m-bar-2 { height: 18px; }
+    .m-bar-3 { height: 13px; }
+    .m-bar-4 { height: 22px; }
+    .m-bar-5 { height: 14px; }
+
+    .mini-circular-pulse {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+    }
+    .m-circle {
+        position: absolute;
+        border: 1.5px solid currentColor;
+        border-radius: 50%;
+        opacity: 0.3;
+    }
+    .m-circle-1 { width: 18px; height: 18px; }
+    .m-circle-2 { width: 30px; height: 30px; }
+    .m-dot {
+        width: 6px;
+        height: 6px;
+        background-color: currentColor;
+        border-radius: 50%;
+    }
+
+    .mini-wave {
+        width: 50px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mini-particles {
+        position: relative;
+        width: 40px;
+        height: 24px;
+    }
+    .m-part {
+        position: absolute;
+        width: 2.5px;
+        height: 2.5px;
+        background-color: currentColor;
+        border-radius: 50%;
+    }
+    .m-part.p-1 { top: 7px; left: 7px; width: 3.5px; height: 3.5px; opacity: 0.8; }
+    .m-part.p-2 { top: 16px; left: 14px; opacity: 0.6; }
+    .m-part.p-3 { top: 4px; left: 22px; width: 2.5px; height: 2.5px; opacity: 0.9; }
+    .m-part.p-4 { top: 13px; left: 29px; width: 3.5px; height: 3.5px; opacity: 0.7; }
+    .m-part.p-5 { top: 9px; left: 34px; opacity: 0.5; }
+    .m-part.p-6 { top: 18px; left: 6px; opacity: 0.4; }
 </style>
