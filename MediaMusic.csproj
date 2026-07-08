@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>MediaMusic</RootNamespace>
@@ -27,6 +28,7 @@
     <!-- Blazor host (transitively brings Photino.NET + WebView) -->
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     <!-- Audio engine: BASS managed wrappers (native DLLs ship separately in native/bass) -->
     <PackageReference Include="ManagedBass" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Mix" Version="4.0.2" />

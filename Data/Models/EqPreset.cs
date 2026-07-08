@@ -13,9 +13,3 @@ public sealed class EqPreset
     public string? CreatedAt { get; set; }
 }
 
-/// <summary>A single equalizer band definition (serialized into <see cref="EqPreset.Bands"/>).</summary>
-public sealed class EqBand
-{
-    public double Frequency { get; set; }   // Hz, e.g. 60, 170, 310, ...
-    public double Gain { get; set; }        // dB, range -12..+12
-}

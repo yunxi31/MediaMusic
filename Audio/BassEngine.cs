@@ -11,6 +11,7 @@ namespace MediaMusic.Audio;
 public sealed class BassEngine : IDisposable
 {
     private readonly ILogger<BassEngine> _logger;
+    private readonly List<int> _pluginHandles = new();
     private bool _initialized;
     private bool _disposed;
 
@@ -18,6 +19,23 @@ public sealed class BassEngine : IDisposable
 
     /// <summary>True once <see cref="Init"/> successfully initialized the BASS device.</summary>
     public bool IsAvailable => _initialized;
+
+    private bool VerifyNativeDlls()
+    {
+        var requiredDlls = new[] { "bass.dll", "bassmix.dll", "bass_fx.dll" };
+        var appDir = AppContext.BaseDirectory;
+        
+        foreach (var dll in requiredDlls)
+        {
+            var path = Path.Combine(appDir, dll);
+            if (!File.Exists(path))
+            {
+                _logger.LogWarning("Missing required BASS DLL: {Dll}", dll);
+                return false;
+            }
+        }
+        return true;
+    }
 
     /// <summary>
     /// Initializes the default output device and loads codec plugins.
@@ -31,8 +49,12 @@ public sealed class BassEngine : IDisposable
 
         try
         {
-            // TODO: verify native bass.dll/bassmix.dll/bass_fx.dll are present in the
-            //       output directory (copied from native/bass via .csproj) before init.
+            if (!VerifyNativeDlls())
+            {
+                _logger.LogWarning("BASS native DLLs verification failed. Audio disabled.");
+                return;
+            }
+
             if (!Bass.Init())
             {
                 _logger.LogWarning("Bass.Init failed: {Error}", Bass.LastError);
@@ -46,7 +68,7 @@ public sealed class BassEngine : IDisposable
         catch (DllNotFoundException ex)
         {
             _logger.LogWarning(ex,
-                "Native BASS DLLs not found in native/bass/. Audio disabled until they are added.");
+                "Native BASS DLLs not found. Audio disabled until they are added.");
         }
         catch (Exception ex)
         {
@@ -56,15 +78,31 @@ public sealed class BassEngine : IDisposable
 
     private void LoadPlugins()
     {
-        // TODO: Bass.PluginLoad("bassflac.dll"); ... for ape/aac/wv.
-        // Order matters: plugins must load after Bass.Init().
-        foreach (var plugin in new[] { "bassflac.dll", "bass_ape.dll", "bass_aac.dll" })
+        var plugins = new[] { "bassflac.dll", "bass_ape.dll", "bass_aac.dll" };
+        var appDir = AppContext.BaseDirectory;
+        _pluginHandles.Clear();
+
+        foreach (var plugin in plugins)
         {
             try
             {
-                var handle = Bass.PluginLoad(plugin);
+                var path = Path.Combine(appDir, plugin);
+                if (!File.Exists(path))
+                {
+                    _logger.LogDebug("Optional BASS plugin not found: {Plugin}", plugin);
+                    continue;
+                }
+
+                var handle = Bass.PluginLoad(path);
                 if (handle == 0)
+                {
                     _logger.LogWarning("Failed to load BASS plugin {Plugin}: {Error}", plugin, Bass.LastError);
+                }
+                else
+                {
+                    _pluginHandles.Add(handle);
+                    _logger.LogInformation("Loaded BASS plugin: {Plugin} (handle {Handle})", plugin, handle);
+                }
             }
             catch (Exception ex)
             {
@@ -79,7 +117,16 @@ public sealed class BassEngine : IDisposable
             return;
         if (_initialized)
         {
-            try { Bass.Free(); } catch { /* swallow during shutdown */ }
+            try
+            {
+                foreach (var handle in _pluginHandles)
+                {
+                    Bass.PluginFree(handle);
+                }
+                _pluginHandles.Clear();
+                Bass.Free();
+            }
+            catch { /* swallow during shutdown */ }
         }
         _disposed = true;
     }

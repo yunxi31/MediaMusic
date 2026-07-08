@@ -35,7 +35,10 @@ public sealed class DbInitializer
             conn.Open();
             conn.Execute(schema);
 
+            _logger.LogInformation("Database tables (including SearchHistory and PlayHistory) verified/created.");
+
             // Database migration: Ensure Tracks has IsFavourite column
+
             var hasIsFavourite = conn.Query("PRAGMA table_info(Tracks)")
                 .Any(row =>
                 {

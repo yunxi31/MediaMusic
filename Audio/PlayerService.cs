@@ -3,6 +3,8 @@ using MediaMusic.Data.Models;
 using MediaMusic.Data.Repositories;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using MediaMusic.Services;
+
 
 namespace MediaMusic.Audio;
 
@@ -20,9 +22,14 @@ public sealed class PlayerService : IDisposable
 {
     private readonly BassEngine _engine;
     private readonly TrackRepository _trackRepo;
+    private readonly EqualizerService _equalizerService;
+    private readonly SettingsService _settingsService;
     private readonly ILogger<PlayerService> _logger;
     private readonly AudioState _state = new();
     private readonly Random _rng = new();
+
+    private readonly PlayHistoryService _playHistoryService;
+    private bool _playedHistoryRecorded;
 
     // ── BASS state ──
     private int _bassChannel;
@@ -39,19 +46,31 @@ public sealed class PlayerService : IDisposable
     private int[]? _shuffleOrder;
 
     // ── Position polling timer ──
-    private readonly Timer _positionTimer;
+    private readonly System.Threading.Timer _positionTimer;
     private bool _disposed;
 
-    public PlayerService(BassEngine engine, TrackRepository trackRepo, ILogger<PlayerService> logger)
+    public PlayerService(
+        BassEngine engine,
+        TrackRepository trackRepo,
+        PlayHistoryService playHistoryService,
+        EqualizerService equalizerService,
+        SettingsService settingsService,
+        ILogger<PlayerService> logger)
     {
         _engine = engine;
         _trackRepo = trackRepo;
+        _playHistoryService = playHistoryService;
+        _equalizerService = equalizerService;
+        _settingsService = settingsService;
         _logger = logger;
-        _positionTimer = new Timer(PollPosition, null, Timeout.Infinite, Timeout.Infinite);
+        _positionTimer = new System.Threading.Timer(PollPosition, null, Timeout.Infinite, Timeout.Infinite);
     }
 
     /// <summary>True when the BASS engine native DLLs are loaded.</summary>
     private bool UseBass => _engine.IsAvailable;
+
+    /// <summary>The active BASS channel handle.</summary>
+    public int ActiveChannelHandle => _bassChannel;
 
     /// <summary>Read-only snapshot of current playback state.</summary>
     public AudioState State => _state;
@@ -273,6 +292,7 @@ public sealed class PlayerService : IDisposable
             return;
         }
 
+        _playedHistoryRecorded = false;
         CleanupPlayback();
 
         try
@@ -287,9 +307,6 @@ public sealed class PlayerService : IDisposable
             _state.PositionMs = 0;
             StartPositionTimer();
             OnStateChanged();
-
-            // Increment play count in background
-            _ = IncrementPlayCountAsync();
         }
         catch (Exception ex)
         {
@@ -399,13 +416,53 @@ public sealed class PlayerService : IDisposable
 
         ApplyVolume(_state.IsMuted ? 0 : _state.Volume);
 
+        _ = ApplyEqualizerToActiveChannelAsync();
+
         _endSyncHandle = Bass.ChannelSetSync(_bassChannel, SyncFlags.End, 0, OnBassStreamEnd);
         Bass.ChannelPlay(_bassChannel);
         _logger.LogInformation("BASS playing: {Title}", track.Title);
     }
 
+    private async Task ApplyEqualizerToActiveChannelAsync()
+    {
+        var channel = _bassChannel;
+        if (channel == 0) return;
+        try
+        {
+            bool eqEnabled = await _settingsService.GetAsync<bool>("eq_enabled", false);
+            if (eqEnabled)
+            {
+                var bandsJson = await _settingsService.GetAsync("eq_bands");
+                if (!string.IsNullOrEmpty(bandsJson))
+                {
+                    var bands = System.Text.Json.JsonSerializer.Deserialize<List<EqBand>>(bandsJson);
+                    if (bands != null)
+                    {
+                        _equalizerService.ApplyBands(channel, bands);
+                        return;
+                    }
+                }
+            }
+            _equalizerService.Disable(channel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to apply equalizer to active channel {Channel}.", channel);
+        }
+    }
+
     private void OnBassStreamEnd(int handle, int channel, int data, IntPtr user)
     {
+        var trackId = _state.CurrentTrack?.Id ?? 0;
+        if (!_playedHistoryRecorded && trackId > 0)
+        {
+            _playedHistoryRecorded = true;
+            _ = Task.Run(async () =>
+            {
+                try { await _playHistoryService.RecordPlayAsync(trackId); } catch { }
+            });
+        }
+
         _ = Task.Run(() =>
         {
             // Respect repeat-one: restart current track
@@ -459,6 +516,16 @@ public sealed class PlayerService : IDisposable
     private void OnNaudioStopped(object? sender, StoppedEventArgs e)
     {
         if (_waveStream == null) return;
+
+        var trackId = _state.CurrentTrack?.Id ?? 0;
+        if (!_playedHistoryRecorded && trackId > 0 && e.Exception == null)
+        {
+            _playedHistoryRecorded = true;
+            _ = Task.Run(async () =>
+            {
+                try { await _playHistoryService.RecordPlayAsync(trackId); } catch { }
+            });
+        }
 
         // If stopped due to an error, don't attempt to loop
         if (e.Exception != null)
@@ -544,6 +611,20 @@ public sealed class PlayerService : IDisposable
             {
                 _state.PositionMs = (long)_waveStream.CurrentTime.TotalMilliseconds;
                 OnStateChanged();
+            }
+
+            if (_state.DurationMs > 0 && _state.CurrentTrack != null)
+            {
+                double progress = (double)_state.PositionMs / _state.DurationMs;
+                var trackId = _state.CurrentTrack.Id;
+                if (progress >= 0.8 && !_playedHistoryRecorded && trackId > 0)
+                {
+                    _playedHistoryRecorded = true;
+                    _ = Task.Run(async () =>
+                    {
+                        try { await _playHistoryService.RecordPlayAsync(trackId); } catch { }
+                    });
+                }
             }
         }
         catch

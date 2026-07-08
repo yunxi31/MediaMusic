@@ -51,6 +51,15 @@ window.mediamusic.drag = {
                 }
             }
         });
+
+        document.addEventListener('dblclick', (e) => {
+            const dragRegion = e.target.closest('#titlebar-drag-region');
+            if (dragRegion || isChromelessTopDragSurface(e)) {
+                if (window.DotNet) {
+                    window.DotNet.invokeMethodAsync('MediaMusic', 'MaximizeWindow');
+                }
+            }
+        });
     }
 };
 
@@ -73,6 +82,9 @@ function isChromelessTopDragSurface(e) {
 
 // Initialize drag listener immediately.
 window.mediamusic.drag.init();
+
+// Disable default right-click context menu
+document.addEventListener('contextmenu', e => e.preventDefault());
 
 // --- Native platform bridges (folder picker, etc.) ---
 window.mediamusic.platform = {

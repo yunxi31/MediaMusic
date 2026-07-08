@@ -45,9 +45,10 @@ internal sealed class Program
             .SetIconFile("wwwroot/favicon.ico")
             .SetTitle("MediaMusic")
             .SetUseOsDefaultSize(false)
-            .SetSize(1200, 800)
+            .SetSize(1440, 900)
             .SetMinSize(960, 600)
             .SetChromeless(true)
+            .SetContextMenuEnabled(false)
             .Center();
 
 

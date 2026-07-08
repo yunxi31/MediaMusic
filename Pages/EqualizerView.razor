@@ -5,6 +5,7 @@
 @using MediaMusic.Services
 @using MediaMusic.Audio
 @inject EqualizerService Equalizer
+@inject PlayerService Player
 @inject EffectsService Effects
 @inject SettingsService Settings
 @inject EqPresetRepository PresetRepo
@@ -406,14 +407,18 @@
 
     private void UpdateEqualizerService()
     {
-        if (EqEnabled)
+        var channel = Player.ActiveChannelHandle;
+        if (channel != 0)
         {
-            var bands = Frequencies.Select((f, idx) => new EqBand { Frequency = f, Gain = BandGains[idx] });
-            Equalizer.ApplyBands(bands);
-        }
-        else
-        {
-            Equalizer.Disable();
+            if (EqEnabled)
+            {
+                var bands = Frequencies.Select((f, idx) => new EqBand { Frequency = f, Gain = BandGains[idx] });
+                Equalizer.ApplyBands(channel, bands);
+            }
+            else
+            {
+                Equalizer.Disable(channel);
+            }
         }
     }
 

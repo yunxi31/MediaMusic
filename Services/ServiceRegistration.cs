@@ -22,12 +22,15 @@ public static class ServiceRegistration
         services.AddSingleton<PlayerService>();
         services.AddSingleton<EqualizerService>();
         services.AddSingleton<EffectsService>();
+        services.AddSingleton<SearchService>();
+        services.AddSingleton<PlayHistoryService>();
 
         // Persistence
         services.AddSingleton<DbConnectionFactory>();
         services.AddSingleton<SeedData>();
         services.AddSingleton<DbInitializer>();
         services.AddScoped<TrackRepository>();
+
         services.AddScoped<AlbumRepository>();
         services.AddScoped<ArtistRepository>();
         services.AddScoped<GenreRepository>();

@@ -90,3 +90,25 @@ CREATE TABLE IF NOT EXISTS Settings (
     [Key]   TEXT PRIMARY KEY,
     [Value] TEXT
 );
+
+-- Search history table
+CREATE TABLE IF NOT EXISTS SearchHistory (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    SearchTerm TEXT NOT NULL,
+    SearchedAt TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS IX_SearchHistory_SearchedAt ON SearchHistory(SearchedAt DESC);
+
+-- Play history table
+CREATE TABLE IF NOT EXISTS PlayHistory (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    TrackId INTEGER NOT NULL,
+    PlayedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (TrackId) REFERENCES Tracks(Id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IX_PlayHistory_TrackId ON PlayHistory(TrackId);
+CREATE INDEX IF NOT EXISTS IX_PlayHistory_PlayedAt ON PlayHistory(PlayedAt DESC);
+CREATE INDEX IF NOT EXISTS IX_PlayHistory_PlayedAt_TrackId ON PlayHistory(PlayedAt DESC, TrackId);
+
