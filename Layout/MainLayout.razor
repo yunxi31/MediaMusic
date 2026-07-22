@@ -1,9 +1,10 @@
-@using MediaMusic.Layout
+﻿@using MediaMusic.Layout
 @inherits LayoutComponentBase
 @inject AppState AppState
 @inject SettingsService Settings
 @inject ThemeService Theme
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 @* Full application shell: TitleBar → Sidebar + Content + PlayerBar *@
 <div class="flex h-full flex-col bg-background text-on-surface">
@@ -32,11 +33,19 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        // Restore theme preference
+        // Restore theme preference using the component-level IJSRuntime (always live).
+        // ThemeService is Scoped but may capture a different JSRuntime instance;
+        // using the component-injected JS guarantees we reach the correct WebView.
         var theme = await Settings.GetAsync<string>("theme", "dark");
         if (theme != null)
         {
-            await Theme.ApplyAsync(theme);
+            try
+            {
+                var jsClass = theme == "dark" ? "add" : "remove";
+                await JS.InvokeVoidAsync("eval", $"document.documentElement.classList.{jsClass}('dark')");
+            }
+            catch { }
+            AppState.SetTheme(theme);
         }
 
         // Hydrate onboarding state from DB on first load.

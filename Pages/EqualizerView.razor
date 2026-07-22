@@ -1,4 +1,4 @@
-@page "/eq"
+﻿@page "/eq"
 @using System.Text.Json
 @using MediaMusic.Data.Models
 @using MediaMusic.Data.Repositories
@@ -17,8 +17,8 @@
     <!-- Header Title Area -->
     <div class="mb-6 flex justify-between items-start">
         <div>
-            <h1 class="text-2xl font-bold text-white tracking-wide">音频工程</h1>
-            <p class="text-xs text-neutral-500 mt-1">配置全局播放动态与系统输出参数。</p>
+            <h1 class="text-2xl font-bold text-on-surface tracking-wide">音频工程</h1>
+            <p class="text-xs text-on-surface-muted mt-1">配置全局播放动态与系统输出参数。</p>
         </div>
         <!-- Simple Top Action to return to Home -->
         <button class="btn-top-nav cursor-pointer" @onclick='() => Nav.NavigateTo("/")'>
@@ -39,16 +39,16 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5h1.5m.75-6l3 12m-.75-12h1.5m.75 6l3-12m-.75 12h1.5m.75-6l3 12m-.75-12h1.5m.75 6l3-12M21 13.5h-1.5" />
                             </svg>
                         </div>
-                        <h2 class="text-base font-medium text-white">10段图形均衡器</h2>
+                        <h2 class="text-base font-medium text-on-surface">10段图形均衡器</h2>
                     </div>
 
                     <!-- Right Controls -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs text-neutral-500 font-medium">预设</span>
+                        <span class="text-xs text-on-surface-muted font-medium">预设</span>
                         
                         <!-- Dropdown -->
                         <div class="relative">
-                            <select class="preset-select text-xs font-semibold cursor-pointer text-white px-3 py-1.5 pr-8 rounded-lg appearance-none outline-none transition-colors"
+                            <select class="preset-select text-xs font-semibold cursor-pointer text-on-surface px-3 py-1.5 pr-8 rounded-lg appearance-none outline-none transition-colors"
                                     value="@SelectedPresetId"
                                     disabled="@(!EqEnabled)"
                                     @onchange="OnPresetChange">
@@ -58,7 +58,7 @@
                                 }
                                 <option value="-1">自定义</option>
                             </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-neutral-400">
+                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-on-surface-muted">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -83,7 +83,7 @@
                         var valPercent = (BandGains[index] + 12.0) / 24.0 * 100.0;
                         <div class="flex flex-col items-center flex-1 h-full justify-between">
                             <!-- dB Value Label -->
-                            <span class="text-[11px] font-semibold @(EqEnabled ? "text-blue" : "text-neutral-500") min-h-[16px] select-none font-mono">
+                            <span class="text-[11px] font-semibold @(EqEnabled ? "text-blue" : "text-on-surface-muted") min-h-[16px] select-none font-mono">
                                 @FormatGain(BandGains[index])
                             </span>
 
@@ -103,7 +103,7 @@
                             </div>
 
                             <!-- Frequency Label -->
-                            <span class="text-[11px] font-semibold text-neutral-400 select-none mt-1">
+                            <span class="text-[11px] font-semibold text-on-surface-muted select-none mt-1">
                                 @FormatFreq(Frequencies[index])
                             </span>
                         </div>
@@ -114,20 +114,20 @@
             <!-- Output Pre-Gain Card -->
             <div class="card p-5 rounded-2xl shadow-lg flex items-center justify-between gap-6">
                 <div class="flex items-center gap-3 min-w-[200px]">
-                    <div class="w-10 h-10 rounded-full bg-dark-gray flex items-center justify-center text-neutral-400">
+                    <div class="w-10 h-10 rounded-full bg-dark-gray flex items-center justify-center text-on-surface-muted">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-medium text-white">输出前级增益</h3>
-                        <p class="text-[11px] text-neutral-500">调节全局增益以防止削波。</p>
+                        <h3 class="text-sm font-medium text-on-surface">输出前级增益</h3>
+                        <p class="text-[11px] text-on-surface-muted">调节全局增益以防止削波。</p>
                     </div>
                 </div>
 
                 <!-- Slider Slider -->
                 <div class="flex-1 flex items-center py-2">
-                    <span class="text-[10px] text-neutral-500 select-none mr-2 font-mono">-12dB</span>
+                    <span class="text-[10px] text-on-surface-muted select-none mr-2 font-mono">-12dB</span>
                     <div class="flex-1 relative flex items-center h-6 group">
                         @{
                             var preGainPercent = (PreGain + 12.0) / 24.0 * 100.0;
@@ -141,12 +141,12 @@
                                @oninput="OnPreGainInput"
                                @onchange="SavePreGain" />
                     </div>
-                    <span class="text-[10px] text-neutral-500 select-none ml-2 font-mono">+12dB</span>
+                    <span class="text-[10px] text-on-surface-muted select-none ml-2 font-mono">+12dB</span>
                 </div>
 
                 <!-- Value Badge -->
                 <div class="w-16 text-right">
-                    <span class="text-xs font-semibold text-white font-mono">@FormatPreGain(PreGain)</span>
+                    <span class="text-xs font-semibold text-on-surface font-mono">@FormatPreGain(PreGain)</span>
                 </div>
             </div>
         </div>
@@ -161,15 +161,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3M4.5 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l-3 3m3-3l3 3" />
                         </svg>
                     </div>
-                    <h2 class="text-base font-medium text-white">播放动态</h2>
+                    <h2 class="text-base font-medium text-on-surface">播放动态</h2>
                 </div>
 
                 <div class="flex flex-col gap-5">
                     <!-- 无缝播放 -->
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm font-medium text-white">无缝播放</h3>
-                            <p class="text-[11px] text-neutral-500">移除曲目间的停顿</p>
+                            <h3 class="text-sm font-medium text-on-surface">无缝播放</h3>
+                            <p class="text-[11px] text-on-surface-muted">移除曲目间的停顿</p>
                         </div>
                         <button class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none @(GaplessEnabled ? "bg-purple" : "bg-dark-gray")"
                                 @onclick="ToggleGapless">
@@ -183,8 +183,8 @@
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <div>
-                                <h3 class="text-sm font-medium text-white">交叉淡入淡出</h3>
-                                <p class="text-[11px] text-neutral-500">平滑音轨过渡</p>
+                                <h3 class="text-sm font-medium text-on-surface">交叉淡入淡出</h3>
+                                <p class="text-[11px] text-on-surface-muted">平滑音轨过渡</p>
                             </div>
                             <span class="text-xs font-semibold px-2 py-0.5 rounded bg-dark-gray text-purple border border-white-04 font-mono">
                                 @FormatCrossfadeMs(CrossfadeDurationSec)
@@ -196,7 +196,7 @@
                             var crossfadePercent = CrossfadeDurationSec / 5.0 * 100.0;
                         }
                         <div class="flex items-center relative py-2">
-                            <span class="text-[10px] text-neutral-500 select-none mr-2 font-mono">关闭</span>
+                            <span class="text-[10px] text-on-surface-muted select-none mr-2 font-mono">关闭</span>
                             <div class="flex-1 relative flex items-center h-6 group">
                                 <div class="absolute left-[7px] right-[7px] h-1.5 bg-dark-gray rounded-full overflow-hidden pointer-events-none">
                                     <div class="h-full bg-purple" style="width: @(crossfadePercent)%"></div>
@@ -207,7 +207,7 @@
                                        @oninput="OnCrossfadeInput"
                                        @onchange="SaveCrossfade" />
                             </div>
-                            <span class="text-[10px] text-neutral-500 select-none ml-2 font-mono">5秒</span>
+                            <span class="text-[10px] text-on-surface-muted select-none ml-2 font-mono">5秒</span>
                         </div>
                     </div>
 
@@ -216,8 +216,8 @@
                     <!-- 重放增益 -->
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm font-medium text-white">重放增益</h3>
-                            <p class="text-[11px] text-neutral-500">标准化音轨响度</p>
+                            <h3 class="text-sm font-medium text-on-surface">重放增益</h3>
+                            <p class="text-[11px] text-on-surface-muted">标准化音轨响度</p>
                         </div>
                         <button class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none @(ReplayGainEnabled ? "bg-purple" : "bg-dark-gray")"
                                 @onclick="ToggleReplayGain">
@@ -496,9 +496,9 @@
         display: flex;
         flex-direction: column;
         padding: 28px 36px;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         overflow-y: auto;
-        background: #0a0b0e;
+        background: rgb(var(--background));
         scrollbar-width: none;
     }
     .eq-page::-webkit-scrollbar {
@@ -525,7 +525,7 @@
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background: #ffffff;
+        background: rgb(var(--on-surface));
         border: 3.5px solid #0084ff;
         box-shadow: 0 2px 6px rgba(0, 132, 255, 0.4);
         cursor: pointer;
@@ -535,7 +535,7 @@
         transform: scale(1.15);
     }
     .eq-slider:disabled::-webkit-slider-thumb {
-        border-color: #525252;
+        border-color: rgb(var(--on-surface-muted));
         box-shadow: none;
         cursor: not-allowed;
     }
@@ -561,7 +561,7 @@
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background: #ffffff;
+        background: rgb(var(--on-surface));
         border: 3.5px solid #a855f7;
         box-shadow: 0 2px 6px rgba(168, 85, 247, 0.4);
         cursor: pointer;
@@ -573,9 +573,9 @@
 
     /* Preset select styling custom override */
     .preset-select {
-        background-color: #1e1f29 !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background-color: rgb(var(--surface-variant)) !important;
+        color: rgb(var(--on-surface)) !important;
+        border: 1px solid rgb(var(--on-surface) / 0.08) !important;
         border-radius: 8px;
         padding: 6px 32px 6px 12px;
         font-size: 12px;
@@ -598,17 +598,17 @@
         cursor: not-allowed;
     }
     .preset-select option {
-        background-color: #1e1f29 !important;
-        color: #ffffff !important;
+        background-color: rgb(var(--surface-variant)) !important;
+        color: rgb(var(--on-surface)) !important;
     }
 
     /* Custom utility classes to bypass uncompiled Tailwind classes */
     .card {
-        background-color: #12131a !important;
-        border: 1px solid rgba(255, 255, 255, 0.04) !important;
+        background-color: rgb(var(--surface)) !important;
+        border: 1px solid rgb(var(--on-surface) / 0.04) !important;
     }
     .bg-dark-gray {
-        background-color: #1e1f29 !important;
+        background-color: rgb(var(--surface-variant)) !important;
     }
     .bg-blue {
         background-color: #0084ff !important;
@@ -617,7 +617,7 @@
         background-color: #a855f7 !important;
     }
     .bg-white-02 {
-        background-color: rgba(255, 255, 255, 0.02) !important;
+        background-color: rgb(var(--on-surface) / 0.02) !important;
     }
     .bg-accent-purple-10 {
         background-color: rgba(168, 85, 247, 0.1) !important;
@@ -629,7 +629,7 @@
         color: #0084ff !important;
     }
     .border-white-04 {
-        border-color: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgb(var(--on-surface) / 0.04) !important;
     }
     .btn-power-active {
         background-color: rgba(168, 85, 247, 0.15) !important;
@@ -638,18 +638,18 @@
         box-shadow: 0 0 10px rgba(168, 85, 247, 0.25) !important;
     }
     .btn-power-inactive {
-        background-color: #1e1f29 !important;
-        border-color: rgba(255, 255, 255, 0.06) !important;
-        color: #737373 !important;
+        background-color: rgb(var(--surface-variant)) !important;
+        border-color: rgb(var(--on-surface) / 0.06) !important;
+        color: rgb(var(--on-surface-muted)) !important;
     }
     .btn-power-inactive:hover {
-        color: #d4d4d4 !important;
+        color: rgb(var(--on-surface)) !important;
     }
 
     .btn-top-nav {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: #d4d4d4;
+        background: rgb(var(--on-surface) / 0.03);
+        border: 1px solid rgb(var(--on-surface) / 0.08);
+        color: rgb(var(--on-surface) / 0.8);
         font-size: 11px;
         font-weight: 600;
         padding: 6px 14px;
@@ -657,8 +657,8 @@
         transition: all 0.2s;
     }
     .btn-top-nav:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: #ffffff;
-        border-color: rgba(255, 255, 255, 0.15);
+        background: rgb(var(--on-surface) / 0.08);
+        color: rgb(var(--on-surface));
+        border-color: rgb(var(--on-surface) / 0.15);
     }
 </style>

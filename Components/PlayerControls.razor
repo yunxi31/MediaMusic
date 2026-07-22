@@ -1,4 +1,4 @@
-@inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 @inject PlayerService Player
 @inject NavigationManager Nav
 
@@ -20,7 +20,7 @@
             }
         </div>
         <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-gray-200 truncate group-hover:text-neon-purple transition-colors duration-300">@(Player.State.CurrentTrack?.Title ?? "未播放")</p>
+            <p class="text-sm font-semibold text-on-surface truncate group-hover:text-neon-purple transition-colors duration-300">@(Player.State.CurrentTrack?.Title ?? "未播放")</p>
             <p class="text-xs text-on-surface/40 truncate mt-0.5">@(Player.State.CurrentTrack?.ArtistName ?? "将音频文件拖入即可开始")</p>
         </div>
         @* Favourite button *@

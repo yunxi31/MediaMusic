@@ -1,4 +1,4 @@
-@* Step 0 – Welcome screen (Figma: 引导页 - 欢迎 Welcome) *@
+﻿@* Step 0 – Welcome screen (Figma: 引导页 - 欢迎 Welcome) *@
 <div class="welcome-container relative flex h-full w-full flex-col items-center justify-center px-10 py-16 text-center select-none overflow-hidden">
     @* Ambient glow background *@
     <div class="absolute w-[450px] h-[450px] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none -translate-y-12"></div>
@@ -33,7 +33,7 @@
     </div>
 
     @* Pill button *@
-    <button class="group relative flex items-center justify-center px-12 py-3.5 rounded-full border border-white/10 bg-white/5 text-white/90 font-medium hover:border-accent/40 hover:bg-[#b983ff]/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.02)] hover:shadow-[0_0_30px_rgba(185,131,255,0.15)]"
+    <button class="group relative flex items-center justify-center px-12 py-3.5 rounded-full border border-white/10 bg-white/5 text-white/90 font-medium hover:border-accent/40 hover:bg-[#b983ff]/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 transition-all duration-300 shadow-[0_0_20px_rgb(var(--on-surface) /0.02)] hover:shadow-[0_0_30px_rgba(185,131,255,0.15)]"
             @onclick="OnNext">
         <span class="tracking-widest">开始体验</span>
         <svg class="w-4 h-4 ml-2.5 transition-transform duration-300 transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">

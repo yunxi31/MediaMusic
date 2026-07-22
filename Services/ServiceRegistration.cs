@@ -1,4 +1,4 @@
-using MediaMusic.Audio;
+﻿using MediaMusic.Audio;
 using MediaMusic.Data;
 using MediaMusic.Data.Repositories;
 using MediaMusic.Library;
@@ -58,7 +58,7 @@ public static class ServiceRegistration
 
         // App-level services & shared state
         services.AddSingleton<AppState>();
-        services.AddSingleton<ThemeService>();
+        services.AddScoped<ThemeService>(); // Scoped: depends on Scoped IJSRuntime
         services.AddSingleton<SettingsService>();
     }
 }

@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @inject PlayerService Player
 @inject LyricsService Lyrics
 @inject TrackRepository TrackRepo
@@ -698,7 +698,7 @@
 
     .home-header h1 {
         margin-top: 8px;
-        color: #fff;
+        color: rgb(var(--on-surface));
         font-size: 25px;
         line-height: 1;
         font-weight: 800;
@@ -721,7 +721,7 @@
         transition: color 150ms ease;
     }
 
-    .icon-button:hover { color: #fff; }
+    .icon-button:hover { color: rgb(var(--on-surface)); }
     .icon-button svg { width: 16px; height: 16px; }
 
     .home-avatar {
@@ -729,7 +729,7 @@
         height: 22px;
         overflow: hidden;
         border-radius: 50%;
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.16);
+        box-shadow: 0 0 0 1px rgb(var(--on-surface) /0.16);
     }
 
     .home-avatar img {
@@ -749,7 +749,7 @@
 
     .home-section h2,
     .section-heading h2 {
-        color: #fff;
+        color: rgb(var(--on-surface));
         font-size: 16px;
         line-height: 1.2;
         font-weight: 800;
@@ -778,16 +778,16 @@
         display: block;
         width: 100px;
         padding: 8px;
-        border: 1px solid rgba(255,255,255,0.06);
+        border: 1px solid rgb(var(--on-surface) /0.06);
         border-radius: 6px;
-        background: rgba(255,255,255,0.035);
+        background: rgb(var(--on-surface) /0.035);
         text-align: left;
         transition: background 150ms ease, border-color 150ms ease;
     }
 
     .recent-card:hover {
         border-color: rgba(var(--neon-purple), 0.32);
-        background: rgba(255,255,255,0.055);
+        background: rgb(var(--on-surface) /0.055);
     }
 
     .cover {
@@ -797,8 +797,8 @@
         height: 78px;
         overflow: hidden;
         border-radius: 4px;
-        background: #111318;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+        background-color: rgb(var(--background));
+        box-shadow: inset 0 0 0 1px rgb(var(--on-surface) /0.04);
     }
 
     .quality-badge {
@@ -808,7 +808,7 @@
         padding: 2px 5px;
         border-radius: 3px;
         background: rgba(0,0,0,0.7);
-        color: rgba(255,255,255,0.86);
+        color: rgb(var(--on-surface) /0.86);
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         font-size: 7px;
         line-height: 1;
@@ -837,7 +837,7 @@
         padding: 8px;
         border-radius: 50%;
         background: rgb(var(--neon-purple));
-        color: #fff;
+        color: rgb(var(--on-surface));
         box-shadow: 0 0 16px rgba(168,85,247,0.45);
     }
 
@@ -851,7 +851,7 @@
 
     .recent-title {
         margin-top: 8px;
-        color: rgba(255,255,255,0.92);
+        color: rgb(var(--on-surface) /0.92);
         font-size: 10px;
         font-weight: 700;
     }
@@ -894,8 +894,8 @@
         transition: background 150ms ease, color 150ms ease;
     }
 
-    .track-item:hover { background: rgba(255,255,255,0.04); }
-    .track-item.active { background: rgba(255,255,255,0.095); }
+    .track-item:hover { background: rgb(var(--on-surface) /0.04); }
+    .track-item.active { background: rgb(var(--on-surface) /0.095); }
     .track-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .track-index svg {
@@ -905,7 +905,7 @@
     }
 
     .track-title {
-        color: rgba(255,255,255,0.88);
+        color: rgb(var(--on-surface) /0.88);
         font-weight: 700;
     }
 
@@ -916,9 +916,9 @@
         align-items: center;
         max-width: 100%;
         padding: 2px 7px;
-        border: 1px solid rgba(255,255,255,0.06);
+        border: 1px solid rgb(var(--on-surface) /0.06);
         border-radius: 4px;
-        background: rgba(255,255,255,0.025);
+        background: rgb(var(--on-surface) /0.025);
         color: rgba(var(--on-surface), 0.58);
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         font-size: 9.5px;
@@ -934,8 +934,8 @@
 
     .cover-obsidian {
         background:
-            linear-gradient(135deg, rgba(255,255,255,0.08), transparent 22%),
-            repeating-linear-gradient(135deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 18px),
+            linear-gradient(135deg, rgb(var(--on-surface) /0.08), transparent 22%),
+            repeating-linear-gradient(135deg, rgb(var(--on-surface) /0.035) 0 2px, transparent 2px 18px),
             linear-gradient(145deg, #071011, #151821 48%, #06070a);
     }
 
@@ -948,7 +948,7 @@
 
     .cover-vinyl {
         background:
-            repeating-radial-gradient(circle at 25% 14%, rgba(255,255,255,0.17) 0 2px, transparent 2px 10px),
+            repeating-radial-gradient(circle at 25% 14%, rgb(var(--on-surface) /0.17) 0 2px, transparent 2px 10px),
             linear-gradient(135deg, #132325, #0a0d0f 48%, #303a36);
     }
 
@@ -969,7 +969,7 @@
     .context-menu {
         min-width: 120px;
         background: #18181c;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgb(var(--on-surface) / 0.12);
         border-radius: 8px;
         padding: 4px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -982,7 +982,7 @@
         padding: 8px 14px;
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.8);
+        color: rgb(var(--on-surface) / 0.8);
         font-size: 12px;
         text-align: left;
         border-radius: 6px;
@@ -991,7 +991,7 @@
     }
 
     .context-menu-item:hover {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgb(var(--on-surface) / 0.06);
         color: #a855f7;
     }
 
@@ -1009,7 +1009,7 @@
 
     .metadata-modal {
         background: #18181c;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgb(var(--on-surface) / 0.1);
         border-radius: 12px;
         width: 90%;
         max-width: 650px;
@@ -1017,7 +1017,7 @@
         flex-direction: column;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         animation: modalFadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1);
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     @@keyframes modalFadeIn {
@@ -1036,20 +1036,20 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgb(var(--on-surface) / 0.08);
     }
 
     .modal-header h3 {
         margin: 0;
         font-size: 16px;
         font-weight: 700;
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .close-btn {
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgb(var(--on-surface) / 0.5);
         cursor: pointer;
         padding: 4px;
         border-radius: 50%;
@@ -1060,8 +1060,8 @@
     }
 
     .close-btn:hover {
-        background: rgba(255, 255, 255, 0.06);
-        color: #fff;
+        background: rgb(var(--on-surface) / 0.06);
+        color: rgb(var(--on-surface));
     }
 
     .close-btn svg {
@@ -1090,7 +1090,7 @@
         background: #101012;
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgb(var(--on-surface) / 0.08);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1104,7 +1104,7 @@
     }
 
     .modal-cover-fallback {
-        color: rgba(255, 255, 255, 0.15);
+        color: rgb(var(--on-surface) / 0.15);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1128,7 +1128,7 @@
         opacity: 0;
         cursor: pointer;
         transition: opacity 150ms;
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .modal-cover-preview:hover .cover-upload-overlay {
@@ -1146,13 +1146,13 @@
 
     .specs-text {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.6);
+        color: rgb(var(--on-surface) / 0.6);
         margin-bottom: 2px;
     }
 
     .specs-format {
         font-size: 10px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         text-transform: uppercase;
         font-weight: 700;
         letter-spacing: 0.05em;
@@ -1174,15 +1174,15 @@
     .input-group label {
         font-size: 11px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgb(var(--on-surface) / 0.5);
     }
 
     .input-group input {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgb(var(--on-surface) / 0.04);
+        border: 1px solid rgb(var(--on-surface) / 0.08);
         border-radius: 6px;
         padding: 9px 12px;
-        color: #fff;
+        color: rgb(var(--on-surface));
         font-size: 13px;
         outline: none;
         transition: border-color 150ms, background 150ms;
@@ -1190,7 +1190,7 @@
 
     .input-group input:focus {
         border-color: rgba(168, 85, 247, 0.5);
-        background: rgba(255, 255, 255, 0.06);
+        background: rgb(var(--on-surface) / 0.06);
     }
 
     .input-row-three {
@@ -1202,8 +1202,8 @@
     .track-no-inputs {
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgb(var(--on-surface) / 0.04);
+        border: 1px solid rgb(var(--on-surface) / 0.08);
         border-radius: 6px;
         overflow: hidden;
     }
@@ -1217,7 +1217,7 @@
     }
 
     .track-no-inputs .divider {
-        color: rgba(255, 255, 255, 0.2);
+        color: rgb(var(--on-surface) / 0.2);
         font-size: 12px;
     }
 
@@ -1226,13 +1226,13 @@
         justify-content: flex-end;
         gap: 12px;
         padding: 20px 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgb(var(--on-surface) / 0.08);
     }
 
     .btn-cancel {
         background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgb(var(--on-surface) / 0.15);
+        color: rgb(var(--on-surface) / 0.8);
         border-radius: 20px;
         padding: 8px 22px;
         font-size: 12px;
@@ -1242,15 +1242,15 @@
     }
 
     .btn-cancel:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.25);
-        color: #fff;
+        background: rgb(var(--on-surface) / 0.05);
+        border-color: rgb(var(--on-surface) / 0.25);
+        color: rgb(var(--on-surface));
     }
 
     .btn-save {
         background: #a855f7;
         border: none;
-        color: #fff;
+        color: rgb(var(--on-surface));
         border-radius: 20px;
         padding: 8px 22px;
         font-size: 12px;

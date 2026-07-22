@@ -1,4 +1,4 @@
-@page "/playlists"
+﻿@page "/playlists"
 @page "/playlists/{PlaylistId:long}"
 @using MediaMusic.Data.Models
 @using MediaMusic.Data.Repositories
@@ -312,8 +312,8 @@ else
         display: flex;
         flex-direction: column;
         padding: 28px 36px 40px;
-        background: #111318;
-        color: #fff;
+        background-color: rgb(var(--background));
+        color: rgb(var(--on-surface));
         overflow-y: auto;
     }
     
@@ -331,12 +331,12 @@ else
         font-size: 28px;
         font-weight: 800;
         letter-spacing: -0.02em;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
 
     .dashboard-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgb(var(--on-surface) / 0.45);
         margin-top: 4px;
         font-weight: 500;
     }
@@ -371,8 +371,8 @@ else
     .playlist-card {
         display: flex;
         flex-direction: column;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgb(var(--on-surface) / 0.02);
+        border: 1px solid rgb(var(--on-surface) / 0.05);
         border-radius: 12px;
         padding: 16px;
         cursor: pointer;
@@ -381,7 +381,7 @@ else
     }
 
     .playlist-card:hover {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgb(var(--on-surface) / 0.06);
         border-color: rgba(168, 85, 247, 0.3);
         transform: translateY(-4px);
     }
@@ -404,7 +404,7 @@ else
     }
 
     .card-cover-fallback {
-        color: rgba(255, 255, 255, 0.65);
+        color: rgb(var(--on-surface) / 0.65);
     }
 
     .fallback-note-icon {
@@ -432,7 +432,7 @@ else
         height: 44px;
         border-radius: 50%;
         background: #a855f7;
-        color: #fff;
+        color: rgb(var(--on-surface));
         display: flex;
         align-items: center;
         justify-content: center;
@@ -453,7 +453,7 @@ else
     .card-name {
         font-size: 14px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.95);
+        color: rgb(var(--on-surface) / 0.95);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -461,7 +461,7 @@ else
 
     .card-tracks {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         margin-top: 3px;
         font-weight: 500;
     }
@@ -472,7 +472,7 @@ else
         right: 16px;
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.3);
+        color: rgb(var(--on-surface) / 0.3);
         cursor: pointer;
         opacity: 0;
         transition: opacity 0.2s, color 0.2s;
@@ -500,20 +500,20 @@ else
     .playlists-empty-state .empty-icon {
         width: 64px;
         height: 64px;
-        color: rgba(255, 255, 255, 0.15);
+        color: rgb(var(--on-surface) / 0.15);
         margin-bottom: 20px;
     }
 
     .empty-title {
         font-size: 16px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgb(var(--on-surface) / 0.85);
         margin-bottom: 8px;
     }
 
     .empty-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         margin-bottom: 24px;
         max-width: 320px;
         line-height: 1.5;
@@ -542,9 +542,9 @@ else
         display: flex;
         flex-direction: column;
         padding: 24px 32px;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         overflow-y: auto;
-        background: linear-gradient(to bottom, #1a1625 0%, #111318 400px);
+        background: rgb(var(--background));
         scrollbar-width: none;
     }
 
@@ -562,7 +562,7 @@ else
         gap: 8px;
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgb(var(--on-surface) / 0.5);
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
@@ -572,8 +572,8 @@ else
     }
 
     .btn-back:hover {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.04);
+        color: rgb(var(--on-surface));
+        background: rgb(var(--on-surface) / 0.04);
     }
 
     .playlist-header {
@@ -590,7 +590,7 @@ else
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.15);
-        border: 1px solid rgba(255,255,255,0.05);
+        border: 1px solid rgb(var(--on-surface) /0.05);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -603,7 +603,7 @@ else
     }
 
     .cover-art-fallback {
-        color: rgba(255, 255, 255, 0.65);
+        color: rgb(var(--on-surface) / 0.65);
     }
 
     .playlist-info {
@@ -627,13 +627,13 @@ else
         font-weight: 800;
         letter-spacing: -1px;
         margin: 0 0 10px 0;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         line-height: 1.1;
     }
 
     .playlist-meta {
         font-size: 13px;
-        color: #9ca3af;
+        color: rgb(var(--on-surface-muted));
         margin-bottom: 18px;
         display: flex;
         align-items: center;
@@ -646,9 +646,9 @@ else
         font-weight: 700;
         padding: 1px 5px;
         border-radius: 4px;
-        background-color: rgba(255, 255, 255, 0.08);
-        color: #d1d5db;
-        border: 1px solid rgba(255,255,255,0.15);
+        background-color: rgb(var(--on-surface) / 0.08);
+        color: rgb(var(--on-surface) / 0.8);
+        border: 1px solid rgb(var(--on-surface) /0.15);
     }
 
     .action-buttons {
@@ -679,8 +679,8 @@ else
 
     .btn-shuffle {
         background-color: transparent;
-        color: #e5e7eb;
-        border: 1px solid rgba(255,255,255,0.3);
+        color: rgb(var(--on-surface) / 0.9);
+        border: 1px solid rgb(var(--on-surface) /0.3);
         padding: 9px 20px;
         border-radius: 9999px;
         font-size: 13px;
@@ -693,8 +693,8 @@ else
         white-space: nowrap;
     }
     .btn-shuffle:hover:not(:disabled) {
-        background-color: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.5);
+        background-color: rgb(var(--on-surface) /0.05);
+        border-color: rgb(var(--on-surface) /0.5);
     }
 
     .btn-play-all:disabled, .btn-shuffle:disabled {
@@ -705,8 +705,8 @@ else
 
     .btn-add {
         background-color: transparent;
-        color: #e5e7eb;
-        border: 1px solid rgba(255,255,255,0.3);
+        color: rgb(var(--on-surface) / 0.9);
+        border: 1px solid rgb(var(--on-surface) /0.3);
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -717,8 +717,8 @@ else
         transition: all 0.2s ease;
     }
     .btn-add:hover {
-        background-color: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.5);
+        background-color: rgb(var(--on-surface) /0.05);
+        border-color: rgb(var(--on-surface) /0.5);
         transform: scale(1.05);
     }
 
@@ -747,15 +747,15 @@ else
         align-items: center;
         justify-content: center;
         padding: 60px 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         font-size: 14px;
         gap: 16px;
     }
 
     .btn-add-tracks-inline {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #ffffff;
+        background: rgb(var(--on-surface) / 0.05);
+        border: 1px solid rgb(var(--on-surface) / 0.15);
+        color: rgb(var(--on-surface));
         padding: 8px 24px;
         border-radius: 9999px;
         font-size: 13px;
@@ -765,8 +765,8 @@ else
     }
 
     .btn-add-tracks-inline:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.3);
+        background: rgb(var(--on-surface) / 0.1);
+        border-color: rgb(var(--on-surface) / 0.3);
     }
 
     /* Track List */
@@ -774,9 +774,9 @@ else
         display: grid;
         grid-template-columns: 50px 1fr 140px 100px;
         padding: 12px 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgb(var(--on-surface) /0.1);
         margin-bottom: 8px;
-        color: #9ca3af;
+        color: rgb(var(--on-surface-muted));
         font-size: 13px;
         font-weight: 500;
         align-items: center;
@@ -791,23 +791,23 @@ else
         padding: 10px 16px;
         border-radius: 8px;
         align-items: center;
-        color: #d1d5db;
+        color: rgb(var(--on-surface) / 0.8);
         transition: background-color 0.2s;
         cursor: pointer;
         position: relative;
     }
 
     .track-row:hover {
-        background-color: rgba(255,255,255,0.04);
+        background-color: rgb(var(--on-surface) /0.04);
     }
 
     .track-row.active {
-        background-color: rgba(255,255,255,0.08);
+        background-color: rgb(var(--on-surface) /0.08);
     }
 
     .track-num {
         font-size: 14px;
-        color: #9ca3af;
+        color: rgb(var(--on-surface-muted));
         text-align: center;
     }
 
@@ -834,7 +834,7 @@ else
 
     .track-artist {
         font-size: 13px;
-        color: #9ca3af;
+        color: rgb(var(--on-surface-muted));
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -849,8 +849,8 @@ else
         font-weight: 600;
         padding: 3px 6px;
         border-radius: 4px;
-        border: 1px solid rgba(255,255,255,0.15);
-        color: #9ca3af;
+        border: 1px solid rgb(var(--on-surface) /0.15);
+        color: rgb(var(--on-surface-muted));
         letter-spacing: 0.5px;
     }
 
@@ -861,7 +861,7 @@ else
 
     .track-duration {
         font-size: 14px;
-        color: #9ca3af;
+        color: rgb(var(--on-surface-muted));
         justify-self: end;
         display: flex;
         align-items: center;
@@ -871,7 +871,7 @@ else
     .track-btn-remove {
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.3);
+        color: rgb(var(--on-surface) / 0.3);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -928,8 +928,8 @@ else
     }
 
     .modal-content {
-        background: #181b22;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) / 0.08);
         border-radius: 16px;
         padding: 24px;
         width: 100%;
@@ -960,13 +960,13 @@ else
     .modal-title {
         font-size: 18px;
         font-weight: 700;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
 
     .btn-modal-close {
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         cursor: pointer;
         transition: color 0.2s;
         display: flex;
@@ -975,7 +975,7 @@ else
     }
 
     .btn-modal-close:hover {
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
 
     .modal-body {
@@ -984,11 +984,11 @@ else
     }
 
     .modal-input {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgb(var(--on-surface) / 0.03);
+        border: 1px solid rgb(var(--on-surface) / 0.1);
         border-radius: 8px;
         padding: 12px 16px;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         font-size: 14px;
         outline: none;
         transition: border-color 0.2s;
@@ -1006,8 +1006,8 @@ else
 
     .btn-modal-cancel {
         background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgb(var(--on-surface) / 0.15);
+        color: rgb(var(--on-surface) / 0.8);
         padding: 8px 20px;
         border-radius: 9999px;
         font-size: 13px;
@@ -1017,8 +1017,8 @@ else
     }
 
     .btn-modal-cancel:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
+        background: rgb(var(--on-surface) / 0.05);
+        color: rgb(var(--on-surface));
     }
 
     .btn-modal-submit {
@@ -1059,7 +1059,7 @@ else
         flex-direction: column;
         gap: 4px;
         scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        scrollbar-color: rgb(var(--on-surface) / 0.1) transparent;
     }
 
     .modal-tracks-list::-webkit-scrollbar {
@@ -1067,14 +1067,14 @@ else
     }
 
     .modal-tracks-list::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgb(var(--on-surface) / 0.1);
         border-radius: 3px;
     }
 
     .modal-empty {
         text-align: center;
         padding: 40px 20px;
-        color: rgba(255, 255, 255, 0.35);
+        color: rgb(var(--on-surface) / 0.35);
         font-size: 13px;
     }
 
@@ -1088,7 +1088,7 @@ else
     }
 
     .modal-track-row:hover {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgb(var(--on-surface) / 0.03);
     }
 
     .modal-track-info {
@@ -1101,12 +1101,12 @@ else
     .modal-track-title {
         font-size: 14px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.95);
+        color: rgb(var(--on-surface) / 0.95);
     }
 
     .modal-track-artist {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgb(var(--on-surface) / 0.45);
     }
 
     .badge-added {
@@ -1121,8 +1121,8 @@ else
 
     .btn-track-add {
         background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgb(var(--on-surface) / 0.2);
+        color: rgb(var(--on-surface) / 0.6);
         width: 28px;
         height: 28px;
         border-radius: 50%;
@@ -1134,9 +1134,9 @@ else
     }
 
     .btn-track-add:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
-        border-color: #fff;
+        background: rgb(var(--on-surface) / 0.05);
+        color: rgb(var(--on-surface));
+        border-color: rgb(var(--on-surface));
         transform: scale(1.05);
     }
 </style>

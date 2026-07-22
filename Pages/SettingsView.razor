@@ -1,4 +1,4 @@
-@page "/settings"
+﻿@page "/settings"
 @using System.IO
 @using System.Text.Json
 @using MediaMusic.Audio
@@ -465,7 +465,7 @@
                         @foreach (var folder in LibraryFolders)
                         {
                             <div class="folder-item">
-                                <span class="folder-path text-xs text-neutral-200">@folder</span>
+                                <span class="folder-path text-xs text-on-surface">@folder</span>
                                 <button class="folder-remove-btn" @onclick="() => RemoveFolder(folder)">
                                     <svg class="w-4 h-4 text-neutral-500 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -476,7 +476,7 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <input type="text" class="folder-input text-xs text-white" placeholder="输入文件夹路径..." @bind="NewFolderInput" />
+                        <input type="text" class="folder-input text-xs text-on-surface" placeholder="输入文件夹路径..." @bind="NewFolderInput" />
                         <button class="folder-add-btn text-xs" @onclick="AddFolder">添加目录</button>
                     </div>
                 </div>
@@ -492,21 +492,21 @@
                         <label class="setting-label block mb-3">界面主题</label>
                         <div class="theme-grid">
                             <div class="theme-card @(ThemeName == "dark" ? "active" : "")" @onclick='() => ChangeTheme("dark")'>
-                                <div class="theme-preview bg-[#0d0d12]">
-                                    <div class="preview-bar bg-white/5 w-full h-2"></div>
+                                <div class="theme-preview" style="background-color: #0d0d12 !important; border-color: rgba(255,255,255,0.1) !important;">
+                                    <div class="preview-bar w-full h-2" style="background-color: rgba(255,255,255,0.15) !important;"></div>
                                     <div class="preview-body flex flex-1 w-full gap-1 p-1">
-                                        <div class="w-2 bg-white/5 h-full rounded-sm"></div>
-                                        <div class="flex-1 bg-white/2 h-full rounded-sm"></div>
+                                        <div class="w-2 h-full rounded-sm" style="background-color: rgba(255,255,255,0.15) !important;"></div>
+                                        <div class="flex-1 h-full rounded-sm" style="background-color: rgba(255,255,255,0.06) !important;"></div>
                                     </div>
                                 </div>
                                 <span class="theme-label">AMOLED 深色</span>
                             </div>
                             <div class="theme-card @(ThemeName == "light" ? "active" : "")" @onclick='() => ChangeTheme("light")'>
-                                <div class="theme-preview bg-[#f4f4f5]">
-                                    <div class="preview-bar bg-black/5 w-full h-2"></div>
+                                <div class="theme-preview" style="background-color: #f4f4f5 !important; border-color: rgba(0,0,0,0.12) !important;">
+                                    <div class="preview-bar w-full h-2" style="background-color: rgba(0,0,0,0.12) !important;"></div>
                                     <div class="preview-body flex flex-1 w-full gap-1 p-1">
-                                        <div class="w-2 bg-black/5 h-full rounded-sm"></div>
-                                        <div class="flex-1 bg-black/2 h-full rounded-sm"></div>
+                                        <div class="w-2 h-full rounded-sm" style="background-color: rgba(0,0,0,0.12) !important;"></div>
+                                        <div class="flex-1 h-full rounded-sm" style="background-color: rgba(0,0,0,0.06) !important;"></div>
                                     </div>
                                 </div>
                                 <span class="theme-label">极致浅色</span>
@@ -522,11 +522,11 @@
                 </div>
                 <div class="panel-content text-center py-6">
                     <div class="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-neon-purple to-indigo-500 shadow-xl shadow-neon-purple/20 mx-auto mb-4">
-                        <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-9 h-9 text-on-surface" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 0L21 9m-1.5-3v13.5m-3-12h3m0 0l-10.5 3m0 0L3 12m6-3v13.5M3 12v6.75A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-15 1.5H1.5M18 10.5h1.5"/>
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-0.5">MediaMusic</h3>
+                    <h3 class="text-base font-bold text-on-surface mb-0.5">MediaMusic</h3>
                     <p class="text-xs text-neutral-400 mb-4">Version 1.0.0 (Build 2026.06)</p>
                     <p class="text-[11px] text-neutral-500 max-w-sm mx-auto leading-relaxed">
                         基于 .NET 10 和 ManagedBass 音频库开发的高解析度本地无损音乐播放器。专为追求极致音质的音乐爱好者设计。
@@ -685,7 +685,7 @@
                                     </div>
                                 </div>
                                 <button class="preview-expand-btn" title="全屏">
-                                    <svg class="w-4 h-4 text-neutral-400 hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 text-neutral-400 hover:text-on-surface transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h4.5m-4.5 0v4.5m0-4.5L9 9M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m-11.25 11.25h4.5m-4.5 0v-4.5m0 4.5L9 15m11.25 5.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
                                     </svg>
                                 </button>
@@ -1114,7 +1114,22 @@
     {
         ThemeName = theme;
         await Settings.SetAsync("theme", theme);
-        await ThemeService.ApplyAsync(theme);
+
+        // Apply theme directly via component-level IJSRuntime.
+        // ThemeService is a Singleton but IJSRuntime is Scoped per-circuit,
+        // so ThemeService's captured IJSRuntime may be stale / disconnected.
+        // The component's injected JS is always the live circuit runtime.
+        try
+        {
+            if (theme == "dark")
+                await JS.InvokeVoidAsync("eval", "document.documentElement.classList.add('dark')");
+            else
+                await JS.InvokeVoidAsync("eval", "document.documentElement.classList.remove('dark')");
+        }
+        catch { }
+
+        // Keep AppState in sync so other components reflect the theme change.
+        AppState.SetTheme(theme);
     }
 
     // Chromeless window action helpers
@@ -1497,8 +1512,8 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        background-color: #0c0d12;
-        color: #ffffff;
+        background-color: rgb(var(--background));
+        color: rgb(var(--on-surface));
         font-family: "Inter", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
     }
 
@@ -1509,14 +1524,14 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 16px 0 24px;
-        background-color: #0c0d12;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        background-color: rgb(var(--background));
+        border-bottom: 1px solid rgb(var(--on-surface) / 0.03);
         user-select: none;
     }
     .header-title {
         font-size: 16px;
         font-weight: 700;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         letter-spacing: 0.5px;
     }
     .header-actions {
@@ -1530,7 +1545,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #737373;
+        color: rgb(var(--on-surface-muted));
         border-radius: 6px;
         background: transparent;
         border: none;
@@ -1538,12 +1553,12 @@
         transition: all 0.15s;
     }
     .action-btn:hover {
-        color: #ffffff;
-        background-color: rgba(255, 255, 255, 0.05);
+        color: rgb(var(--on-surface));
+        background-color: rgb(var(--on-surface) / 0.05);
     }
     .action-btn.close-btn:hover {
         background-color: #ef4444;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
     .search-btn {
         margin-right: 6px;
@@ -1559,12 +1574,12 @@
     /* Sidebar selector navigation */
     .settings-sidebar {
         width: 200px;
-        border-right: 1px solid rgba(255, 255, 255, 0.03);
+        border-right: 1px solid rgb(var(--on-surface) / 0.03);
         padding: 24px 12px;
         display: flex;
         flex-direction: column;
         gap: 6px;
-        background-color: #0c0d12;
+        background-color: rgb(var(--background));
         flex-shrink: 0;
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -1577,7 +1592,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 8px 12px 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgb(var(--on-surface) / 0.03);
         margin-bottom: 12px;
     }
     .settings-sidebar.collapsed .sidebar-header-row {
@@ -1587,14 +1602,14 @@
     .sidebar-title-text {
         font-size: 11px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     .sidebar-toggle-btn {
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         cursor: pointer;
         padding: 4px;
         border-radius: 4px;
@@ -1604,8 +1619,8 @@
         transition: all 0.2s;
     }
     .sidebar-toggle-btn:hover {
-        color: #ffffff;
-        background-color: rgba(255, 255, 255, 0.05);
+        color: rgb(var(--on-surface));
+        background-color: rgb(var(--on-surface) / 0.05);
     }
     .sidebar-item {
         width: 100%;
@@ -1613,7 +1628,7 @@
         padding: 10px 16px;
         font-size: 12px;
         font-weight: 600;
-        color: #c5a880; /* Muted Gold as in Mockup */
+        color: rgb(var(--muted-gold)); /* Muted Gold as in Mockup */
         background: transparent;
         border: none;
         border-radius: 8px;
@@ -1633,8 +1648,8 @@
         flex-shrink: 0;
     }
     .sidebar-item:hover {
-        color: #ffffff;
-        background-color: rgba(255, 255, 255, 0.02);
+        color: rgb(var(--on-surface));
+        background-color: rgb(var(--on-surface) / 0.02);
     }
     .sidebar-item.active {
         color: #a855f7; /* Highlighting matching purple color scheme */
@@ -1647,7 +1662,7 @@
         flex: 1;
         padding: 32px 48px;
         overflow-y: auto;
-        background-color: #0c0d12;
+        background-color: rgb(var(--background));
     }
     .panel-header {
         margin-bottom: 24px;
@@ -1655,16 +1670,16 @@
     .panel-header h2 {
         font-size: 18px;
         font-weight: 700;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         padding-bottom: 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* White border as in Figma */
+        border-bottom: 1px solid rgb(var(--on-surface) / 0.08); /* White border as in Figma */
     }
     .panel-header h2::after {
         content: '';
         display: block;
         width: 100%;
         height: 1px;
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: rgb(var(--on-surface) / 0.08);
         margin-top: 12px;
     }
     .panel-content {
@@ -1682,7 +1697,7 @@
     .setting-label {
         font-size: 12px;
         font-weight: 600;
-        color: #a3a3a3;
+        color: rgb(var(--on-surface-muted));
         margin-bottom: 8px;
     }
     .setting-description {
@@ -1692,7 +1707,7 @@
     .setting-value {
         font-size: 11px;
         font-weight: 600;
-        color: #a3a3a3;
+        color: rgb(var(--on-surface-muted));
     }
 
     /* Custom select drop down */
@@ -1702,9 +1717,9 @@
     }
     .custom-select {
         width: 100%;
-        background-color: #121319;
-        color: #e5e5e5;
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        background-color: rgb(var(--surface));
+        color: rgb(var(--on-surface) / 0.9);
+        border: 1px solid rgb(var(--on-surface) / 0.04);
         border-radius: 10px;
         padding: 12px 16px;
         font-size: 12px;
@@ -1725,7 +1740,7 @@
         top: 50%;
         transform: translateY(-50%);
         pointer-events: none;
-        color: #737373;
+        color: rgb(var(--on-surface-muted));
     }
 
     /* Horizontal Slider custom range stylings */
@@ -1733,7 +1748,7 @@
         position: relative;
         width: 100%;
         height: 6px;
-        background-color: #1e1f29;
+        background-color: rgb(var(--surface-variant));
         border-radius: 3px;
         margin: 12px 0 6px 0;
         display: flex;
@@ -1743,7 +1758,7 @@
         position: absolute;
         left: 0;
         height: 100%;
-        background-color: rgba(255, 255, 255, 0.4); /* Subtle white track in spec */
+        background-color: rgb(var(--on-surface) / 0.4); /* Subtle white track in spec */
         border-radius: 3px;
         pointer-events: none;
     }
@@ -1765,8 +1780,8 @@
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background-color: #ffffff;
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        background-color: rgb(var(--on-surface));
+        box-shadow: 0 0 8px rgb(var(--on-surface) / 0.6);
         cursor: pointer;
         transition: transform 0.1s;
     }
@@ -1784,7 +1799,7 @@
 
     .divider {
         height: 1px;
-        background-color: rgba(255, 255, 255, 0.08); /* Separator line matching Figma */
+        background-color: rgb(var(--on-surface) / 0.08); /* Separator line matching Figma */
         margin: 8px 0;
     }
 
@@ -1792,7 +1807,7 @@
     .toggle-switch {
         width: 44px;
         height: 24px;
-        background-color: #1e1f29;
+        background-color: rgb(var(--surface-variant));
         border-radius: 12px;
         border: none;
         position: relative;
@@ -1812,7 +1827,7 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background-color: #ffffff;
+        background-color: rgb(var(--on-surface));
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
         transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -1825,8 +1840,8 @@
         position: relative;
         display: flex;
         align-items: center;
-        background-color: #121319;
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        background-color: rgb(var(--surface));
+        border: 1px solid rgb(var(--on-surface) / 0.04);
         border-radius: 8px;
         padding: 0 12px;
         width: 90px;
@@ -1838,7 +1853,7 @@
         background: transparent;
         border: none;
         outline: none;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         font-family: ui-monospace, monospace;
         font-size: 12px;
         font-weight: 600;
@@ -1880,8 +1895,8 @@
         gap: 20px !important;
     }
     .global-hotkeys-card {
-        background-color: #121319;
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        background-color: rgb(var(--surface));
+        border: 1px solid rgb(var(--on-surface) / 0.03);
         border-radius: 12px;
         padding: 16px 20px;
         display: flex;
@@ -1913,7 +1928,7 @@
     .card-title {
         font-size: 13px;
         font-weight: 600;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
     .card-description {
         font-size: 11px;
@@ -1943,7 +1958,7 @@
     .section-divider {
         flex: 1;
         height: 1px;
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: rgb(var(--on-surface) / 0.08);
         margin-left: 12px;
     }
     .shortcut-cards-grid {
@@ -1952,8 +1967,8 @@
         gap: 12px;
     }
     .shortcut-card {
-        background-color: #121319;
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        background-color: rgb(var(--surface));
+        border: 1px solid rgb(var(--on-surface) / 0.03);
         border-radius: 8px;
         padding: 12px 16px;
         display: flex;
@@ -1965,13 +1980,13 @@
         user-select: none;
     }
     .shortcut-card:hover {
-        background-color: #161720;
-        border-color: rgba(255, 255, 255, 0.08);
+        background-color: rgb(var(--surface-variant));
+        border-color: rgb(var(--on-surface) / 0.08);
     }
     .shortcut-card:focus, .shortcut-card.recording {
         border-color: #a855f7;
         box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 12px rgba(168, 85, 247, 0.15);
-        background-color: #151224;
+        background-color: rgb(var(--surface-variant));
     }
     .card-label-area {
         display: flex;
@@ -2011,9 +2026,9 @@
         font-size: 10px;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-weight: 600;
-        background-color: #1c1d24;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+        background-color: rgb(var(--surface-variant));
+        border: 1px solid rgb(var(--on-surface) / 0.08);
+        border-bottom: 2px solid rgb(var(--on-surface) / 0.12);
         color: #e4e4e7;
         padding: 2px 6px;
         border-radius: 4px;
@@ -2039,7 +2054,7 @@
     }
     .reset-btn {
         background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgb(var(--on-surface) / 0.15);
         color: #e4e4e7;
         font-size: 11px;
         font-weight: 500;
@@ -2052,9 +2067,9 @@
         transition: all 0.2s;
     }
     .reset-btn:hover {
-        background-color: rgba(255, 255, 255, 0.03);
-        border-color: rgba(255, 255, 255, 0.3);
-        color: #ffffff;
+        background-color: rgb(var(--on-surface) / 0.03);
+        border-color: rgb(var(--on-surface) / 0.3);
+        color: rgb(var(--on-surface));
     }
     @@keyframes pulse {
         0%, 100% { opacity: 1; }
@@ -2072,8 +2087,8 @@
         justify-content: space-between;
         align-items: center;
         padding: 10px 14px;
-        background-color: #121319;
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        background-color: rgb(var(--surface));
+        border: 1px solid rgb(var(--on-surface) / 0.03);
         border-radius: 8px;
     }
     .folder-path {
@@ -2087,8 +2102,8 @@
     }
     .folder-input {
         flex: 1;
-        background-color: #121319;
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        background-color: rgb(var(--surface));
+        border: 1px solid rgb(var(--on-surface) / 0.04);
         border-radius: 8px;
         padding: 10px 14px;
         outline: none;
@@ -2109,7 +2124,7 @@
     }
     .folder-add-btn:hover {
         background-color: #a855f7;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
 
     /* Appearance Tab */
@@ -2119,8 +2134,8 @@
     }
     .theme-card {
         flex: 1;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        background-color: #121319;
+        border: 1px solid rgb(var(--on-surface) / 0.05);
+        background-color: rgb(var(--surface));
         border-radius: 12px;
         padding: 12px;
         cursor: pointer;
@@ -2132,8 +2147,8 @@
         max-width: 140px;
     }
     .theme-card:hover {
-        border-color: rgba(255, 255, 255, 0.1);
-        background-color: rgba(255, 255, 255, 0.02);
+        border-color: rgb(var(--on-surface) / 0.1);
+        background-color: rgb(var(--on-surface) / 0.02);
     }
     .theme-card.active {
         border-color: #a855f7;
@@ -2143,7 +2158,7 @@
         width: 100%;
         height: 64px;
         border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        border: 1px solid rgb(var(--on-surface) / 0.05);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -2151,7 +2166,7 @@
     .theme-label {
         font-size: 11px;
         font-weight: 600;
-        color: #a3a3a3;
+        color: rgb(var(--on-surface-muted));
     }
     .theme-card.active .theme-label {
         color: #a855f7;
@@ -2175,13 +2190,13 @@
     }
     .adv-subtitle {
         font-size: 12px;
-        color: rgba(255,255,255,0.4);
+        color: rgb(var(--on-surface) /0.4);
         font-weight: 400;
     }
 
     .adv-section {
-        background: #111318;
-        border: 1px solid rgba(255,255,255,0.05);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) /0.05);
         border-radius: 14px;
         padding: 20px 22px;
         display: flex;
@@ -2196,7 +2211,7 @@
     .adv-section-icon {
         width: 18px;
         height: 18px;
-        color: rgba(255,255,255,0.5);
+        color: rgb(var(--on-surface) /0.5);
         flex-shrink: 0;
     }
     .adv-section-title {
@@ -2213,8 +2228,8 @@
         gap: 14px;
     }
     .adv-export-card {
-        background: #0c0d12;
-        border: 1px solid rgba(255,255,255,0.06);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) /0.06);
         border-radius: 12px;
         padding: 20px 12px;
         display: flex;
@@ -2232,7 +2247,7 @@
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.06);
+        background: rgb(var(--on-surface) /0.06);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2240,17 +2255,17 @@
     .adv-export-svg {
         width: 22px;
         height: 22px;
-        color: rgba(255,255,255,0.7);
+        color: rgb(var(--on-surface) /0.7);
     }
     .adv-export-format {
         font-size: 13px;
         font-weight: 700;
-        color: #e5e5e5;
+        color: rgb(var(--on-surface) / 0.9);
         font-family: monospace;
     }
     .adv-export-desc {
         font-size: 10.5px;
-        color: rgba(255,255,255,0.35);
+        color: rgb(var(--on-surface) /0.35);
         text-align: center;
     }
 
@@ -2270,11 +2285,11 @@
     .adv-backup-label {
         font-size: 13px;
         font-weight: 600;
-        color: #e5e5e5;
+        color: rgb(var(--on-surface) / 0.9);
     }
     .adv-backup-sub {
         font-size: 11px;
-        color: rgba(255,255,255,0.35);
+        color: rgb(var(--on-surface) /0.35);
         font-family: monospace;
     }
     .adv-backup-actions {
@@ -2289,16 +2304,16 @@
         padding: 9px 16px;
         font-size: 12px;
         font-weight: 600;
-        color: #e5e5e5;
-        background: #1a1c24;
-        border: 1px solid rgba(255,255,255,0.1);
+        color: rgb(var(--on-surface) / 0.9);
+        background-color: rgb(var(--surface-variant));
+        border: 1px solid rgb(var(--on-surface) /0.1);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
     }
     .adv-btn-secondary:hover {
-        background: #22242f;
-        border-color: rgba(255,255,255,0.2);
+        background-color: rgb(var(--surface-variant));
+        border-color: rgb(var(--on-surface) /0.2);
     }
     .adv-btn-primary {
         display: inline-flex;
@@ -2307,7 +2322,7 @@
         padding: 9px 16px;
         font-size: 12px;
         font-weight: 600;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         background: #a855f7;
         border: 1px solid transparent;
         border-radius: 8px;
@@ -2320,8 +2335,8 @@
 
     /* Terminal */
     .adv-terminal {
-        background: #07080c;
-        border: 1px solid rgba(255,255,255,0.07);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) /0.07);
         border-radius: 10px;
         overflow: hidden;
         font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
@@ -2331,12 +2346,12 @@
         align-items: center;
         justify-content: space-between;
         padding: 8px 14px;
-        background: #0e0f14;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        background-color: rgb(var(--background));
+        border-bottom: 1px solid rgb(var(--on-surface) /0.05);
     }
     .adv-terminal-title {
         font-size: 10.5px;
-        color: rgba(255,255,255,0.4);
+        color: rgb(var(--on-surface) /0.4);
         font-family: monospace;
     }
     .adv-terminal-dots {
@@ -2362,7 +2377,7 @@
     }
     .adv-terminal-line {
         font-size: 11.5px;
-        color: rgba(255,255,255,0.65);
+        color: rgb(var(--on-surface) /0.65);
         line-height: 1.6;
     }
     .term-warn { color: #f43f5e; }
@@ -2371,8 +2386,8 @@
         display: flex;
         gap: 10px;
         padding: 12px 16px;
-        border-top: 1px solid rgba(255,255,255,0.05);
-        background: #0e0f14;
+        border-top: 1px solid rgb(var(--on-surface) /0.05);
+        background-color: rgb(var(--background));
     }
     .adv-scan-btn {
         display: inline-flex;
@@ -2381,15 +2396,15 @@
         padding: 8px 16px;
         font-size: 12px;
         font-weight: 600;
-        color: #ffffff;
-        background: #1a1c24;
-        border: 1px solid rgba(255,255,255,0.1);
+        color: rgb(var(--on-surface));
+        background-color: rgb(var(--surface-variant));
+        border: 1px solid rgb(var(--on-surface) /0.1);
         border-radius: 7px;
         cursor: pointer;
         transition: all 0.2s;
     }
     .adv-scan-btn:hover:not(:disabled) {
-        background: #22242f;
+        background-color: rgb(var(--surface-variant));
         border-color: rgba(168,85,247,0.4);
         color: #a855f7;
     }
@@ -2398,16 +2413,16 @@
         padding: 8px 14px;
         font-size: 11px;
         font-weight: 500;
-        color: rgba(255,255,255,0.4);
+        color: rgb(var(--on-surface) /0.4);
         background: transparent;
-        border: 1px solid rgba(255,255,255,0.06);
+        border: 1px solid rgb(var(--on-surface) /0.06);
         border-radius: 7px;
         cursor: pointer;
         transition: all 0.2s;
     }
     .adv-clear-btn:hover {
-        color: rgba(255,255,255,0.7);
-        border-color: rgba(255,255,255,0.15);
+        color: rgb(var(--on-surface) /0.7);
+        border-color: rgb(var(--on-surface) /0.15);
     }
     @@keyframes spin-anim { to { transform: rotate(360deg); } }
     .spin { animation: spin-anim 1s linear infinite; }
@@ -2426,19 +2441,19 @@
     .visualizer-title {
         font-size: 22px;
         font-weight: 800;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
         letter-spacing: -0.3px;
         margin-bottom: 6px;
     }
     .visualizer-title-en {
         font-size: 14px;
         font-weight: 400;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         margin-left: 6px;
     }
     .visualizer-subtitle {
         font-size: 11.5px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         font-weight: 400;
     }
     .visualizer-layout {
@@ -2450,8 +2465,8 @@
 
     /* Preview Container */
     .visualizer-preview-container {
-        background-color: #111318;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) / 0.05);
         border-radius: 14px;
         padding: 20px;
         display: flex;
@@ -2487,14 +2502,14 @@
     }
     .preview-label {
         font-size: 10px;
-        color: rgba(255, 255, 255, 0.35);
+        color: rgb(var(--on-surface) / 0.35);
         font-weight: 600;
         letter-spacing: 0.2px;
     }
     .preview-value {
         font-size: 13px;
         font-weight: 700;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
     .preview-expand-btn {
         background: transparent;
@@ -2508,7 +2523,7 @@
         transition: background-color 0.2s;
     }
     .preview-expand-btn:hover {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: rgb(var(--on-surface) / 0.05);
     }
     .preview-display {
         flex: 1;
@@ -2516,8 +2531,8 @@
         align-items: center;
         justify-content: center;
         margin: 20px 0;
-        background-color: #07080c;
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) / 0.03);
         border-radius: 10px;
         padding: 20px;
         min-height: 300px;
@@ -2532,9 +2547,9 @@
         font-size: 9.5px;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.4);
-        background-color: #121319;
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: rgb(var(--on-surface) / 0.4);
+        background-color: rgb(var(--surface));
+        border: 1px solid rgb(var(--on-surface) / 0.06);
         padding: 5px 14px;
         border-radius: 20px;
         letter-spacing: 0.5px;
@@ -2547,8 +2562,8 @@
         gap: 20px;
     }
     .control-card {
-        background-color: #111318;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: rgb(var(--background));
+        border: 1px solid rgb(var(--on-surface) / 0.05);
         border-radius: 14px;
         padding: 20px 22px;
         display: flex;
@@ -2567,8 +2582,8 @@
         gap: 14px;
     }
     .style-card {
-        background-color: #0c0d12;
-        border: 1.5px solid rgba(255, 255, 255, 0.06);
+        background-color: rgb(var(--background));
+        border: 1.5px solid rgb(var(--on-surface) / 0.06);
         border-radius: 10px;
         overflow: hidden;
         cursor: pointer;
@@ -2590,9 +2605,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        color: rgba(255, 255, 255, 0.3);
-        background-color: #07080c;
+        border-bottom: 1px solid rgb(var(--on-surface) / 0.04);
+        color: rgb(var(--on-surface) / 0.3);
+        background-color: rgb(var(--background));
         position: relative;
     }
     .style-card.active .style-icon-box {
@@ -2607,7 +2622,7 @@
     .style-name {
         font-size: 11.5px;
         font-weight: 600;
-        color: #e5e5e5;
+        color: rgb(var(--on-surface) / 0.9);
     }
     .check-badge {
         color: #c084fc;
@@ -2760,7 +2775,7 @@
     .parameter-label {
         font-size: 11.5px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgb(var(--on-surface) / 0.5);
     }
     .parameter-badge {
         font-size: 9.5px;
@@ -2775,7 +2790,7 @@
         position: relative;
         width: 100%;
         height: 6px;
-        background-color: #1a1c24;
+        background-color: rgb(var(--surface-variant));
         border-radius: 3px;
         display: flex;
         align-items: center;
@@ -2807,8 +2822,8 @@
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background-color: #ffffff;
-        box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+        background-color: rgb(var(--on-surface));
+        box-shadow: 0 0 6px rgb(var(--on-surface) / 0.8);
         cursor: pointer;
     }
 
@@ -2826,11 +2841,11 @@
     .option-title {
         font-size: 12px;
         font-weight: 600;
-        color: #ffffff;
+        color: rgb(var(--on-surface));
     }
     .option-desc {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.35);
+        color: rgb(var(--on-surface) / 0.35);
     }
     
     /* Styles miniature elements */

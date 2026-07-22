@@ -1,4 +1,4 @@
-@page "/discover"
+﻿@page "/discover"
 @using MediaMusic.Services
 @inject PlayerService Player
 @inject TrackRepository TrackRepo
@@ -362,8 +362,8 @@
         height: 100%;
         overflow-y: auto;
         padding: 28px 36px 40px;
-        background: #111318;
-        color: #fff;
+        background-color: rgb(var(--background));
+        color: rgb(var(--on-surface));
         user-select: none;
     }
 
@@ -416,8 +416,8 @@
         height: 46px;
         padding: 0 48px 0 24px;
         font-size: 14px;
-        color: #fff;
-        background: rgba(255, 255, 255, 0.02);
+        color: rgb(var(--on-surface));
+        background: rgb(var(--on-surface) / 0.02);
         border: 1.5px solid rgba(168, 85, 247, 0.45);
         border-radius: 9999px;
         outline: none;
@@ -428,11 +428,11 @@
     .search-input:focus {
         border-color: rgba(168, 85, 247, 0.8);
         box-shadow: 0 0 24px rgba(168, 85, 247, 0.25);
-        background: rgba(255, 255, 255, 0.04);
+        background: rgb(var(--on-surface) / 0.04);
     }
 
     .search-input::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: rgb(var(--on-surface) / 0.3);
     }
 
     .search-clear-btn {
@@ -445,14 +445,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgb(var(--on-surface) / 0.5);
         border-radius: 50%;
         transition: color 0.15s, background 0.15s;
     }
 
     .search-clear-btn:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.1);
+        color: rgb(var(--on-surface));
+        background: rgb(var(--on-surface) / 0.1);
     }
 
     .search-clear-btn svg {
@@ -496,13 +496,13 @@
         font-size: 16px;
         font-weight: 700;
         letter-spacing: 0.03em;
-        color: rgba(255, 255, 255, 0.95);
+        color: rgb(var(--on-surface) / 0.95);
     }
 
     /* 最近搜索 */
     .clear-history-btn {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         transition: color 0.15s;
         border: none;
         background: none;
@@ -510,7 +510,7 @@
     }
 
     .clear-history-btn:hover {
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .recent-tags {
@@ -526,24 +526,24 @@
         padding: 6px 16px;
         font-size: 11px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.85);
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgb(var(--on-surface) / 0.85);
+        background: rgb(var(--on-surface) / 0.03);
+        border: 1px solid rgb(var(--on-surface) / 0.08);
         border-radius: 9999px;
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
     .tag-chip:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.2);
-        color: #fff;
+        background: rgb(var(--on-surface) / 0.08);
+        border-color: rgb(var(--on-surface) / 0.2);
+        color: rgb(var(--on-surface));
     }
 
     .tag-clock-icon {
         width: 12px;
         height: 12px;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgb(var(--on-surface) / 0.45);
     }
 
     /* 歌手 */
@@ -574,12 +574,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #181b22;
+        background-color: rgb(var(--background));
         padding: 2px;
     }
 
     .avatar-gray {
-        border: 1.5px solid rgba(255, 255, 255, 0.15);
+        border: 1.5px solid rgb(var(--on-surface) / 0.15);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
@@ -598,11 +598,11 @@
     .artist-name {
         font-size: 11px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgb(var(--on-surface) / 0.7);
     }
 
     .artist-card:hover .artist-name {
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     /* 单曲 */
@@ -616,16 +616,16 @@
         display: flex;
         align-items: center;
         padding: 8px 12px;
-        background: rgba(255, 255, 255, 0.015);
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        background: rgb(var(--on-surface) / 0.015);
+        border: 1px solid rgb(var(--on-surface) / 0.03);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
     .song-row:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.08);
+        background: rgb(var(--on-surface) / 0.04);
+        border-color: rgb(var(--on-surface) / 0.08);
     }
 
     .song-row-active {
@@ -679,7 +679,7 @@
         justify-content: center;
         opacity: 0;
         transition: opacity 0.2s ease;
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .song-row:hover .play-overlay {
@@ -696,12 +696,12 @@
     .song-title {
         font-size: 13px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.95);
+        color: rgb(var(--on-surface) / 0.95);
     }
 
     .song-artist {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgb(var(--on-surface) / 0.45);
     }
 
     .song-row-active .song-title {
@@ -723,15 +723,15 @@
         padding: 3px 5px;
         font-size: 8px;
         font-weight: 800;
-        color: rgba(255, 255, 255, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgb(var(--on-surface) / 0.6);
+        border: 1px solid rgb(var(--on-surface) / 0.15);
         border-radius: 4px;
-        background: rgba(255, 255, 255, 0.02);
+        background: rgb(var(--on-surface) / 0.02);
     }
 
     .song-duration {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         width: 32px;
         text-align: right;
     }
@@ -758,7 +758,7 @@
         right: 16px;
         font-size: 9px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.35);
+        color: rgb(var(--on-surface) / 0.35);
         letter-spacing: 0.05em;
     }
 
@@ -789,13 +789,13 @@
     .best-match-name {
         font-size: 16px;
         font-weight: 800;
-        color: #fff;
+        color: rgb(var(--on-surface));
         margin-bottom: 4px;
     }
 
     .best-match-desc {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgb(var(--on-surface) / 0.45);
         margin-bottom: 20px;
     }
 
@@ -808,7 +808,7 @@
         justify-content: center;
         font-size: 12px;
         font-weight: 700;
-        color: #fff;
+        color: rgb(var(--on-surface));
         background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
         border: none;
         border-radius: 9999px;
@@ -825,8 +825,8 @@
 
     /* Hot Discover */
     .hot-discover-card {
-        background: rgba(255, 255, 255, 0.015);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgb(var(--on-surface) / 0.015);
+        border: 1px solid rgb(var(--on-surface) / 0.05);
         border-radius: 12px;
         padding: 20px 24px;
         display: flex;
@@ -849,7 +849,7 @@
     .hot-discover-header h4 {
         font-size: 14px;
         font-weight: 700;
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .hot-list {
@@ -879,31 +879,31 @@
     }
 
     .rank-1 {
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .rank-other {
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
     }
 
     .hot-title {
         flex-grow: 1;
         font-size: 12px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgb(var(--on-surface) / 0.85);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .hot-item:hover .hot-title {
-        color: #fff;
+        color: rgb(var(--on-surface));
     }
 
     .hot-trend-icon {
         width: 14px;
         height: 14px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgb(var(--on-surface) / 0.4);
         margin-left: 8px;
     }
 </style>
