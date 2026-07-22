@@ -35,6 +35,58 @@ public static class WindowHelper
         MainWindow?.Close();
     }
 
+    public static Audio.PlayerService? PlayerService { get; set; }
+
+    private static readonly Dictionary<string, string> ActionToCombination = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> CombinationToAction = new(StringComparer.OrdinalIgnoreCase);
+
+    public static void RegisterShortcut(string actionId, string combination)
+    {
+        if (string.IsNullOrWhiteSpace(actionId) || string.IsNullOrWhiteSpace(combination)) return;
+        
+        if (ActionToCombination.TryGetValue(actionId, out var oldComb))
+        {
+            CombinationToAction.Remove(oldComb);
+        }
+        ActionToCombination[actionId] = combination;
+        CombinationToAction[combination] = actionId;
+    }
+
+    [JSInvokable("HandleGlobalShortcut")]
+    public static bool HandleGlobalShortcut(string combination)
+    {
+        if (PlayerService == null || string.IsNullOrWhiteSpace(combination)) return false;
+
+        if (!CombinationToAction.TryGetValue(combination, out var actionId)) return false;
+
+        switch (actionId)
+        {
+            case "play_pause":
+                PlayerService.TogglePlayPause();
+                return true;
+            case "next":
+                PlayerService.Next();
+                return true;
+            case "prev":
+                PlayerService.Previous();
+                return true;
+            case "vol_up":
+                PlayerService.SetVolume(Math.Min(1.0, PlayerService.State.Volume + 0.05));
+                return true;
+            case "vol_down":
+                PlayerService.SetVolume(Math.Max(0.0, PlayerService.State.Volume - 0.05));
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    [JSInvokable("TogglePlayPause")]
+    public static void TogglePlayPause()
+    {
+        PlayerService?.TogglePlayPause();
+    }
+
     [JSInvokable("StartDragWindow")]
     public static void StartDragWindow()
     {

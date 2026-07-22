@@ -1,8 +1,24 @@
 @page "/settings"
+@using System.IO
+@using System.Text.Json
+@using MediaMusic.Audio
+@using MediaMusic.Data.Models
+@using MediaMusic.Data.Repositories
+@using MediaMusic.Library
+@using MediaMusic.Platform
 @using MediaMusic.Services
 @inject SettingsService Settings
+@inject ThemeService ThemeService
+@inject AppState AppState
+@inject LibraryService Library
+@inject TrackRepository TrackRepo
+@inject GlobalHotkeyService Hotkeys
+@inject EffectsService Effects
+@inject PlayerService Player
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+
+
 
 <PageTitle>设置 - MediaMusic</PageTitle>
 
@@ -231,7 +247,7 @@
                         </div>
                         
                         <div class="shortcut-cards-grid">
-                            <div class="shortcut-card @(recordingKey == "play_pause" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("play_pause")' @onkeydown="HandleKeyDown">
+                            <div class="shortcut-card @(recordingKey == "play_pause" ? "recording" : "")" tabindex="0" @onclick='async () => await StartRecording("play_pause")' @onkeydown="HandleKeyDown">
                                 <div class="card-label-area">
                                     <span class="shortcut-icon">
                                         <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="currentColor">
@@ -259,7 +275,7 @@
                                 </div>
                             </div>
 
-                            <div class="shortcut-card @(recordingKey == "next" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("next")' @onkeydown="HandleKeyDown">
+                            <div class="shortcut-card @(recordingKey == "next" ? "recording" : "")" tabindex="0" @onclick='async () => await StartRecording("next")' @onkeydown="HandleKeyDown">
                                 <div class="card-label-area">
                                     <span class="shortcut-icon">
                                         <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="currentColor">
@@ -287,7 +303,7 @@
                                 </div>
                             </div>
 
-                            <div class="shortcut-card @(recordingKey == "prev" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("prev")' @onkeydown="HandleKeyDown">
+                            <div class="shortcut-card @(recordingKey == "prev" ? "recording" : "")" tabindex="0" @onclick='async () => await StartRecording("prev")' @onkeydown="HandleKeyDown">
                                 <div class="card-label-area">
                                     <span class="shortcut-icon">
                                         <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="currentColor">
@@ -334,7 +350,7 @@
                         </div>
                         
                         <div class="shortcut-cards-grid">
-                            <div class="shortcut-card @(recordingKey == "vol_up" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("vol_up")' @onkeydown="HandleKeyDown">
+                            <div class="shortcut-card @(recordingKey == "vol_up" ? "recording" : "")" tabindex="0" @onclick='async () => await StartRecording("vol_up")' @onkeydown="HandleKeyDown">
                                 <div class="card-label-area">
                                     <span class="shortcut-icon">
                                         <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -364,7 +380,7 @@
                                 </div>
                             </div>
 
-                            <div class="shortcut-card @(recordingKey == "vol_down" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("vol_down")' @onkeydown="HandleKeyDown">
+                            <div class="shortcut-card @(recordingKey == "vol_down" ? "recording" : "")" tabindex="0" @onclick='async () => await StartRecording("vol_down")' @onkeydown="HandleKeyDown">
                                 <div class="card-label-area">
                                     <span class="shortcut-icon">
                                         <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -393,7 +409,7 @@
                                 </div>
                             </div>
 
-                            <div class="shortcut-card @(recordingKey == "toggle_mini" ? "recording" : "")" tabindex="0" @onclick='() => StartRecording("toggle_mini")' @onkeydown="HandleKeyDown">
+                            <div class="shortcut-card @(recordingKey == "toggle_mini" ? "recording" : "")" tabindex="0" @onclick='async () => await StartRecording("toggle_mini")' @onkeydown="HandleKeyDown">
                                 <div class="card-label-area">
                                     <span class="shortcut-icon">
                                         <svg class="shortcut-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -927,7 +943,7 @@
     private string OutputDevice = "System Default (WASAPI)";
     private int BufferSize = 512;
     private bool GaplessEnabled = true;
-    private int CrossfadeDurationMs = 8; // Defaulting to 8ms matching Figma spec
+    private int CrossfadeDurationMs = 8;
 
     // Library states
     private List<string> LibraryFolders = new() { @"D:\LosslessMusic", @"C:\Users\Yunxi\Music" };
@@ -949,7 +965,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load Settings
+        // Load Audio Settings
         OutputDevice = await Settings.GetAsync<string>("output_device", "System Default (WASAPI)") ?? "System Default (WASAPI)";
         BufferSize = await Settings.GetAsync<int>("buffer_size", 512);
 
@@ -962,8 +978,25 @@
             CrossfadeDurationMs = cf;
         }
 
+        // Load Library Roots
+        var rootsJson = await Settings.GetAsync("scan_roots");
+        if (!string.IsNullOrEmpty(rootsJson))
+        {
+            try
+            {
+                var savedRoots = JsonSerializer.Deserialize<List<string>>(rootsJson);
+                if (savedRoots != null && savedRoots.Count > 0)
+                {
+                    LibraryFolders = savedRoots;
+                }
+            }
+            catch { }
+        }
+
+        // Load Theme
         ThemeName = await Settings.GetAsync<string>("theme", "dark") ?? "dark";
 
+        // Load Hotkeys
         var globalHotkeysVal = await Settings.GetAsync("global_hotkeys_enabled", "true") ?? "true";
         GlobalHotkeysEnabled = globalHotkeysVal == "true";
 
@@ -974,6 +1007,9 @@
         ShortcutVolDown = await Settings.GetAsync("shortcut_vol_down", "Alt + Down") ?? "Alt + Down";
         ShortcutToggleMini = await Settings.GetAsync("shortcut_toggle_mini", "Ctrl + M") ?? "Ctrl + M";
 
+        RegisterHotkeys();
+
+        // Load Visualizer
         VisualizerStyle = await Settings.GetAsync<string>("visualizer_style", "classic_bars") ?? "classic_bars";
         VisualizerSensitivity = await Settings.GetAsync<int>("visualizer_sensitivity", 75);
         VisualizerDensity = await Settings.GetAsync<int>("visualizer_density", 68);
@@ -1033,21 +1069,44 @@
     private async Task SaveCrossfade()
     {
         await Settings.SetAsync("crossfade_duration_ms", CrossfadeDurationMs.ToString());
+        Effects.CrossfadeMs = CrossfadeDurationMs;
     }
 
     // Library operations
-    private void AddFolder()
+    private async Task AddFolder()
     {
+        if (OperatingSystem.IsWindows())
+        {
+            var picked = FolderPicker.PickFolder();
+            if (!string.IsNullOrWhiteSpace(picked) && !LibraryFolders.Contains(picked))
+            {
+                LibraryFolders.Add(picked);
+                NewFolderInput = "";
+                await SaveFoldersAsync();
+                return;
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(NewFolderInput) && !LibraryFolders.Contains(NewFolderInput))
         {
             LibraryFolders.Add(NewFolderInput);
             NewFolderInput = "";
+            await SaveFoldersAsync();
         }
     }
 
-    private void RemoveFolder(string folder)
+    private async Task RemoveFolder(string folder)
     {
         LibraryFolders.Remove(folder);
+        await SaveFoldersAsync();
+    }
+
+    private async Task SaveFoldersAsync()
+    {
+        var json = JsonSerializer.Serialize(LibraryFolders);
+        await Settings.SetAsync("scan_roots", json);
+        AppState.ScanRoots.Clear();
+        AppState.ScanRoots.AddRange(LibraryFolders);
     }
 
     // Appearance operations
@@ -1055,7 +1114,7 @@
     {
         ThemeName = theme;
         await Settings.SetAsync("theme", theme);
-        // Force ThemeService application if injected, for live visual testing
+        await ThemeService.ApplyAsync(theme);
     }
 
     // Chromeless window action helpers
@@ -1067,34 +1126,34 @@
     {
         GlobalHotkeysEnabled = !GlobalHotkeysEnabled;
         await Settings.SetAsync("global_hotkeys_enabled", GlobalHotkeysEnabled ? "true" : "false");
+        Hotkeys.SetEnabled(GlobalHotkeysEnabled);
     }
 
-    private void StartRecording(string key)
+    private async Task StartRecording(string key)
     {
         recordingKey = key;
+        await JS.InvokeVoidAsync("mediamusic.setRecording", true);
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (string.IsNullOrEmpty(recordingKey)) return;
 
-        // Ignore modifier keys alone
         if (e.Key == "Control" || e.Key == "Shift" || e.Key == "Alt" || e.Key == "Meta")
             return;
 
         if (e.Key == "Escape")
         {
             recordingKey = "";
+            await JS.InvokeVoidAsync("mediamusic.setRecording", false);
             return;
         }
 
-        // Build key combination string
         var parts = new List<string>();
         if (e.CtrlKey) parts.Add("Ctrl");
         if (e.AltKey) parts.Add("Alt");
         if (e.ShiftKey) parts.Add("Shift");
 
-        // Format key name nicely
         var mainKey = e.Key;
         if (mainKey == " ") mainKey = "Space";
         else if (mainKey == "ArrowUp") mainKey = "Up";
@@ -1104,12 +1163,12 @@
         else if (mainKey.Length == 1) mainKey = mainKey.ToUpper();
 
         parts.Add(mainKey);
-
         var combination = string.Join(" + ", parts);
 
-        // Update state and save
-        await SaveShortcut(recordingKey, combination);
+        var captured = recordingKey;
         recordingKey = "";
+        await JS.InvokeVoidAsync("mediamusic.setRecording", false);
+        await SaveShortcut(captured, combination);
     }
 
     private async Task SaveShortcut(string keyType, string combination)
@@ -1141,6 +1200,31 @@
                 await Settings.SetAsync("shortcut_toggle_mini", combination);
                 break;
         }
+        RegisterHotkeys();
+    }
+
+    private void RegisterHotkeys()
+    {
+        WindowHelper.RegisterShortcut("play_pause", ShortcutPlayPause);
+        WindowHelper.RegisterShortcut("next", ShortcutNext);
+        WindowHelper.RegisterShortcut("prev", ShortcutPrev);
+        WindowHelper.RegisterShortcut("vol_up", ShortcutVolUp);
+        WindowHelper.RegisterShortcut("vol_down", ShortcutVolDown);
+
+        if (!OperatingSystem.IsWindows()) return;
+        try
+        {
+            Hotkeys.SetEnabled(GlobalHotkeysEnabled);
+            if (GlobalHotkeysEnabled)
+            {
+                Hotkeys.Register("play_pause", ShortcutPlayPause, () => Player.TogglePlayPause());
+                Hotkeys.Register("next", ShortcutNext, () => Player.Next());
+                Hotkeys.Register("prev", ShortcutPrev, () => Player.Previous());
+                Hotkeys.Register("vol_up", ShortcutVolUp, () => Player.SetVolume(Math.Min(1.0f, Player.State.Volume + 0.05f)));
+                Hotkeys.Register("vol_down", ShortcutVolDown, () => Player.SetVolume(Math.Max(0.0f, Player.State.Volume - 0.05f)));
+            }
+        }
+        catch { }
     }
 
     private async Task ResetShortcutsToDefault()
@@ -1160,6 +1244,8 @@
         await Settings.SetAsync("shortcut_vol_up", "Alt + Up");
         await Settings.SetAsync("shortcut_vol_down", "Alt + Down");
         await Settings.SetAsync("shortcut_toggle_mini", "Ctrl + M");
+
+        RegisterHotkeys();
     }
 
     private List<string> SplitKeys(string shortcut)
@@ -1169,7 +1255,7 @@
     }
 
     // ── Advanced Management ──────────────────────────────────────────────
-    private string LastBackupTime = "2023-10-27 14:32";
+    private string LastBackupTime = "尚未备份";
     private bool IsScanning = false;
     private List<TerminalLine> TerminalLines = new();
 
@@ -1180,67 +1266,171 @@
         public bool IsWarning { get; set; }
     }
 
-    private void ExportM3U()
+    private async Task ExportM3U()
     {
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 正在导出 .M3U 播放列表..." });
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 已成功导出 M3U 文件至桌面。" });
+        try
+        {
+            TerminalLines.Add(new TerminalLine { Text = "> 正在从 SQLite 数据库提取音轨数据..." });
+            StateHasChanged();
+            var tracks = (await TrackRepo.SearchAsync(null, null, null, null)).ToList();
+            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var filePath = Path.Combine(desktop, "MediaMusic_Export.m3u");
+
+            using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
+            writer.WriteLine("#EXTM3U");
+            foreach (var t in tracks)
+            {
+                var sec = (int)((t.DurationMs ?? 0) / 1000);
+                writer.WriteLine($"#EXTINF:{sec},{t.ArtistName} - {t.Title}");
+                writer.WriteLine(t.FilePath);
+            }
+
+            TerminalLines.Add(new TerminalLine { Text = $"> 已成功导出 {tracks.Count} 首音轨至桌面: {filePath}" });
+        }
+        catch (Exception ex)
+        {
+            TerminalLines.Add(new TerminalLine { Text = $"导出 M3U 失败: {ex.Message}", IsError = true });
+        }
+        StateHasChanged();
     }
 
-    private void ExportJSON()
+    private async Task ExportJSON()
     {
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 正在导出 .JSON 元数据..." });
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 已成功导出 JSON 文件至桌面。" });
+        try
+        {
+            TerminalLines.Add(new TerminalLine { Text = "> 正在导出 .JSON 元数据..." });
+            StateHasChanged();
+            var tracks = (await TrackRepo.SearchAsync(null, null, null, null)).ToList();
+            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var filePath = Path.Combine(desktop, "MediaMusic_Tracks.json");
+            var json = JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(filePath, json);
+
+            TerminalLines.Add(new TerminalLine { Text = $"> 已成功导出 {tracks.Count} 条记录至桌面: {filePath}" });
+        }
+        catch (Exception ex)
+        {
+            TerminalLines.Add(new TerminalLine { Text = $"导出 JSON 失败: {ex.Message}", IsError = true });
+        }
+        StateHasChanged();
     }
 
-    private void ExportCSV()
+    private async Task ExportCSV()
     {
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 正在导出 .CSV 报表..." });
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 已成功导出 CSV 文件至桌面。" });
+        try
+        {
+            TerminalLines.Add(new TerminalLine { Text = "> 正在导出 .CSV 报表..." });
+            StateHasChanged();
+            var tracks = (await TrackRepo.SearchAsync(null, null, null, null)).ToList();
+            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var filePath = Path.Combine(desktop, "MediaMusic_Library.csv");
+
+            using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
+            writer.WriteLine("Id,Title,Artist,Album,Genre,Year,Format,FilePath");
+            foreach (var t in tracks)
+            {
+                writer.WriteLine($"\"{t.Id}\",\"{t.Title}\",\"{t.ArtistName}\",\"{t.AlbumTitle}\",\"{t.GenreName}\",\"{t.Year}\",\"{t.Format}\",\"{t.FilePath}\"");
+            }
+
+            TerminalLines.Add(new TerminalLine { Text = $"> 已成功导出 CSV 报表至桌面: {filePath}" });
+        }
+        catch (Exception ex)
+        {
+            TerminalLines.Add(new TerminalLine { Text = $"导出 CSV 失败: {ex.Message}", IsError = true });
+        }
+        StateHasChanged();
     }
 
     private void BackupDatabase()
     {
-        LastBackupTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-        TerminalLines.Add(new TerminalLine { Text = $"&gt; 数据库已备份 — {LastBackupTime}" });
+        try
+        {
+            var dbPath = Path.Combine(AppContext.BaseDirectory, "media_music.db");
+            var backupPath = Path.Combine(AppContext.BaseDirectory, "media_music_backup.db");
+            if (File.Exists(dbPath))
+            {
+                File.Copy(dbPath, backupPath, true);
+                LastBackupTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                TerminalLines.Add(new TerminalLine { Text = $"> 数据库成功备份至: {backupPath} — {LastBackupTime}" });
+            }
+            else
+            {
+                TerminalLines.Add(new TerminalLine { Text = "警告: 未找到源数据库文件 media_music.db", IsWarning = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            TerminalLines.Add(new TerminalLine { Text = $"备份失败: {ex.Message}", IsError = true });
+        }
+        StateHasChanged();
     }
 
     private void RestoreBackup()
     {
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 正在恢复本地数据库文件...", IsWarning = true });
-        TerminalLines.Add(new TerminalLine { Text = "&gt; 恢复完成。" });
+        try
+        {
+            var dbPath = Path.Combine(AppContext.BaseDirectory, "media_music.db");
+            var backupPath = Path.Combine(AppContext.BaseDirectory, "media_music_backup.db");
+            if (File.Exists(backupPath))
+            {
+                File.Copy(backupPath, dbPath, true);
+                TerminalLines.Add(new TerminalLine { Text = "> 已成功从备份文件恢复数据库。", IsWarning = true });
+            }
+            else
+            {
+                TerminalLines.Add(new TerminalLine { Text = "警告: 找不到有效备份文件 media_music_backup.db", IsWarning = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            TerminalLines.Add(new TerminalLine { Text = $"恢复失败: {ex.Message}", IsError = true });
+        }
+        StateHasChanged();
     }
 
     private async Task RunMetadataScan()
     {
+        if (IsScanning) return;
         IsScanning = true;
         TerminalLines.Clear();
-        TerminalLines.Add(new TerminalLine { Text = "&gt; Initializing deep scan..." });
+        TerminalLines.Add(new TerminalLine { Text = "> 初始化深度曲库扫描..." });
         StateHasChanged();
-        await Task.Delay(400);
 
-        TerminalLines.Add(new TerminalLine { Text = "&gt; Loading audio files: <span style='color:#a855f7;font-weight:700;'>24,592</span> items found." });
-        StateHasChanged();
-        await Task.Delay(500);
+        var validFolders = LibraryFolders.Where(Directory.Exists).ToList();
+        if (!validFolders.Any())
+        {
+            TerminalLines.Add(new TerminalLine { Text = "警告: 未配置文件路径或配置路径不存在。", IsWarning = true });
+            IsScanning = false;
+            StateHasChanged();
+            return;
+        }
 
-        TerminalLines.Add(new TerminalLine { Text = "&gt; Checking for orphaned files..." });
+        TerminalLines.Add(new TerminalLine { Text = $"> 准备扫描 {validFolders.Count} 个根目录..." });
         StateHasChanged();
-        await Task.Delay(400);
 
-        TerminalLines.Add(new TerminalLine { Text = "Warning: 3 files not found — <span style='color:#f43f5e;'>/Volumes/Music/FLAC/Radiohead/Kid A/02-The National Anthem.flac</span>", IsWarning = true });
-        StateHasChanged();
-        await Task.Delay(300);
+        var progress = new Progress<ScanProgress>(p =>
+        {
+            if (p.Processed % 5 == 0 || p.Processed == p.TotalFound)
+            {
+                TerminalLines.Add(new TerminalLine { Text = $"> [处理中] ({p.Processed}/{p.TotalFound}) {Path.GetFileName(p.CurrentFile)}" });
+                StateHasChanged();
+            }
+        });
 
-        TerminalLines.Add(new TerminalLine { Text = "&gt; Analyzing ID3 tags..." });
-        StateHasChanged();
-        await Task.Delay(500);
-
-        TerminalLines.Add(new TerminalLine { Text = "&gt; Found <span style='color:#a855f7;font-weight:700;'>147</span> tracks with missing metadata." });
-        StateHasChanged();
-        await Task.Delay(400);
-
-        TerminalLines.Add(new TerminalLine { Text = "&gt; Scan complete. Database is healthy." });
-        IsScanning = false;
-        StateHasChanged();
+        try
+        {
+            await Library.ScanAsync(validFolders, progress);
+            TerminalLines.Add(new TerminalLine { Text = "> 扫描完成，数据库已成功刷新并建立索引。" });
+        }
+        catch (Exception ex)
+        {
+            TerminalLines.Add(new TerminalLine { Text = $"错误: 扫描过程中发生异常 — {ex.Message}", IsError = true });
+        }
+        finally
+        {
+            IsScanning = false;
+            StateHasChanged();
+        }
     }
 
     private void ClearTerminal()

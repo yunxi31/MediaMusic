@@ -5,6 +5,13 @@
 
 window.mediamusic = window.mediamusic || {};
 
+// Flag set by Blazor when user is actively recording a shortcut key binding.
+// While true, the global keydown handler is suppressed so Blazor can capture.
+window.mediamusic._isRecordingShortcut = false;
+window.mediamusic.setRecording = function(active) {
+    window.mediamusic._isRecordingShortcut = !!active;
+};
+
 // --- Theme switching (PRD §3.1) ---
 window.mediamusic.theme = {
     set(theme) {
@@ -124,6 +131,49 @@ window.mediamusic.lyrics = {
         }
     }
 };
+
+// Handle all webview shortcut key combinations (Space, Ctrl+Right, Ctrl+Left, Alt+Up, Alt+Down, etc.)
+document.addEventListener('keydown', async (e) => {
+    // Ignore when typing text in inputs
+    const tag = e.target ? e.target.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) {
+        return;
+    }
+    // Ignore when user is actively recording a key binding (flag set by Blazor)
+    if (window.mediamusic._isRecordingShortcut) {
+        return;
+    }
+    // Ignore standalone modifier keypresses
+    if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+        return;
+    }
+
+    const parts = [];
+    if (e.ctrlKey) parts.push('Ctrl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+
+    let mainKey = e.key;
+    if (e.code === 'Space' || mainKey === ' ' || mainKey === 'Spacebar') mainKey = 'Space';
+    else if (mainKey === 'ArrowUp') mainKey = 'Up';
+    else if (mainKey === 'ArrowDown') mainKey = 'Down';
+    else if (mainKey === 'ArrowLeft') mainKey = 'Left';
+    else if (mainKey === 'ArrowRight') mainKey = 'Right';
+    else if (mainKey.length === 1) mainKey = mainKey.toUpperCase();
+
+    parts.push(mainKey);
+    const combination = parts.join(' + ');
+
+    if (window.DotNet) {
+        try {
+            const handled = await window.DotNet.invokeMethodAsync('MediaMusic', 'HandleGlobalShortcut', combination);
+            if (handled) {
+                e.preventDefault();
+            }
+        } catch { }
+    }
+});
+
 
 
 

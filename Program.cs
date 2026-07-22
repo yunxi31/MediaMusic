@@ -28,8 +28,9 @@ internal sealed class Program
 
         var app = appBuilder.Build();
 
-        // Store the main window instance for JSInvokable window controls.
+        // Store the main window instance and player service for JSInvokable endpoints.
         WindowHelper.MainWindow = app.MainWindow;
+        WindowHelper.PlayerService = app.Services.GetRequiredService<PlayerService>();
 
         // Initialize the BASS audio engine (fails soft if native DLLs are absent).
         var bassEngine = app.Services.GetRequiredService<BassEngine>();
@@ -75,15 +76,17 @@ internal sealed class Program
             var bindVolUp     = await settings.GetAsync<string>("shortcut_vol_up",     "Alt + Up")     ?? "Alt + Up";
             var bindVolDown   = await settings.GetAsync<string>("shortcut_vol_down",   "Alt + Down")   ?? "Alt + Down";
 
-            hotkeys.Register("play_pause", bindPlayPause, () =>
-            {
-                if (player.State.IsPlaying) player.Pause();
-                else player.Resume();
-            });
+            hotkeys.Register("play_pause", bindPlayPause, player.TogglePlayPause);
             hotkeys.Register("next",     bindNext,    player.Next);
             hotkeys.Register("prev",     bindPrev,    player.Previous);
-            hotkeys.Register("vol_up",   bindVolUp,   () => { /* wire to volume control when AppState.Volume is implemented */ });
-            hotkeys.Register("vol_down", bindVolDown, () => { /* wire to volume control when AppState.Volume is implemented */ });
+            hotkeys.Register("vol_up",   bindVolUp,   () => player.SetVolume(Math.Min(1.0, player.State.Volume + 0.05)));
+            hotkeys.Register("vol_down", bindVolDown, () => player.SetVolume(Math.Max(0.0, player.State.Volume - 0.05)));
+
+            WindowHelper.RegisterShortcut("play_pause", bindPlayPause);
+            WindowHelper.RegisterShortcut("next", bindNext);
+            WindowHelper.RegisterShortcut("prev", bindPrev);
+            WindowHelper.RegisterShortcut("vol_up", bindVolUp);
+            WindowHelper.RegisterShortcut("vol_down", bindVolDown);
 
             hotkeys.SetEnabled(true);
         });

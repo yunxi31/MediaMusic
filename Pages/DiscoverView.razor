@@ -1,8 +1,11 @@
 @page "/discover"
+@using MediaMusic.Services
 @inject PlayerService Player
 @inject TrackRepository TrackRepo
+@inject SearchService SearchService
 @inject IJSRuntime JS
 @implements IDisposable
+
 
 <PageTitle>发现 - MediaMusic</PageTitle>
 
@@ -182,11 +185,11 @@
 
 @code {
     private string _searchQuery = "Hans Zimmer";
-    private List<string> _recentSearches = new() { "Hans Zimmer", "8D Audio", "Cyberpunk OST" };
+    private List<string> _recentSearches = new();
 
     private sealed record SongItem(string Title, string Artist, string Album, string Duration, bool IsHiRes, string CoverClass);
 
-    private static readonly List<SongItem> AllSongs = new()
+    private static readonly List<SongItem> SampleSongs = new()
     {
         new("Time", "Hans Zimmer", "Inception OST", "4:35", true, "cover-time"),
         new("Cornfield Chase", "Hans Zimmer", "Interstellar OST", "2:06", false, "cover-cornfield"),
@@ -196,15 +199,21 @@
         new("Interstellar Remastered", "Hans Zimmer", "Interstellar OST", "6:15", true, "cover-interstellar")
     };
 
-    private IEnumerable<SongItem> _displaySongs => string.IsNullOrWhiteSpace(_searchQuery)
-        ? AllSongs.Take(2)
-        : AllSongs.Where(s => s.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
-                             s.Artist.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                             s.Album.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
+    private List<SongItem> _dbSongs = new();
 
-    protected override void OnInitialized()
+    private IEnumerable<SongItem> _displaySongs => _dbSongs.Count > 0 
+        ? _dbSongs 
+        : (string.IsNullOrWhiteSpace(_searchQuery)
+            ? SampleSongs.Take(2)
+            : SampleSongs.Where(s => s.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
+                                 s.Artist.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                 s.Album.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase)));
+
+    protected override async Task OnInitializedAsync()
     {
         Player.StateChanged += OnPlayerStateChanged;
+        await LoadRecentSearchesAsync();
+        await ExecuteSearchAsync(_searchQuery);
     }
 
     private void OnPlayerStateChanged(object? sender, EventArgs e)
@@ -212,39 +221,89 @@
         InvokeAsync(StateHasChanged);
     }
 
-    private void SetSearchQuery(string query)
+    private async Task LoadRecentSearchesAsync()
+    {
+        try
+        {
+            var searches = await SearchService.GetRecentSearchesAsync();
+            _recentSearches = searches.ToList();
+            if (!_recentSearches.Any())
+            {
+                _recentSearches = new List<string> { "Hans Zimmer", "8D Audio", "Cyberpunk OST" };
+            }
+        }
+        catch
+        {
+            _recentSearches = new List<string> { "Hans Zimmer", "8D Audio", "Cyberpunk OST" };
+        }
+    }
+
+    private async Task SetSearchQuery(string query)
     {
         _searchQuery = query;
-        if (!_recentSearches.Contains(query))
+        await ExecuteSearchAsync(query);
+    }
+
+    private async Task ExecuteSearchAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
         {
-            _recentSearches.Insert(0, query);
-            if (_recentSearches.Count > 5)
-                _recentSearches.RemoveAt(_recentSearches.Count - 1);
+            _dbSongs.Clear();
+            StateHasChanged();
+            return;
         }
+
+        try
+        {
+            await SearchService.SaveSearchAsync(query);
+            var searchResult = await SearchService.SearchAllAsync(query);
+            if (searchResult.Tracks.Any())
+            {
+                _dbSongs = searchResult.Tracks.Select(t => new SongItem(
+                    t.Title ?? "未知曲目",
+                    t.ArtistName ?? "未知歌手",
+                    t.AlbumTitle ?? "未知专辑",
+                    FormatMs(t.DurationMs),
+                    t.Format?.Contains("FLAC", StringComparison.OrdinalIgnoreCase) == true,
+                    "cover-time"
+                )).ToList();
+            }
+            else
+            {
+                _dbSongs.Clear();
+            }
+            await LoadRecentSearchesAsync();
+        }
+        catch { }
+        
         StateHasChanged();
     }
 
     private void ClearSearch()
     {
         _searchQuery = string.Empty;
+        _dbSongs.Clear();
         StateHasChanged();
     }
 
-    private void ClearHistory()
+    private async Task ClearHistory()
     {
-        _recentSearches.Clear();
+        try
+        {
+            await SearchService.ClearHistoryAsync();
+            _recentSearches.Clear();
+        }
+        catch { }
         StateHasChanged();
     }
 
     private async Task PlaySong(SongItem song)
     {
-        // Try to find a matching track from repository to play natively if possible
         var tracks = await TrackRepo.SearchAsync(null, null, null, song.Title);
         var track = tracks.FirstOrDefault(t => t.Title?.Equals(song.Title, StringComparison.OrdinalIgnoreCase) ?? false);
         
         if (track == null)
         {
-            // If not found, create a sample track so the PlayerControls bar shows it playing
             track = new Track
             {
                 Title = song.Title,
@@ -262,11 +321,18 @@
 
     private async Task PlayAllHansZimmer()
     {
-        var zimmerSongs = AllSongs.Where(s => s.Artist == "Hans Zimmer").ToList();
-        if (zimmerSongs.Count > 0)
+        await SetSearchQuery("Hans Zimmer");
+        if (_displaySongs.Any())
         {
-            await PlaySong(zimmerSongs[0]);
+            await PlaySong(_displaySongs.First());
         }
+    }
+
+    private static string FormatMs(long? ms)
+    {
+        if (!ms.HasValue) return "--:--";
+        var ts = TimeSpan.FromMilliseconds(ms.Value);
+        return $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}";
     }
 
     private long ParseDurationToMs(string duration)

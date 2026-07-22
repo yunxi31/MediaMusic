@@ -97,6 +97,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await Task.CompletedTask;
         // If already onboarded, skip straight to main app.
         var done = false; // Forced: always load onboarding.
         if (done)

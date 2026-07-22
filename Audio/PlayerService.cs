@@ -87,10 +87,10 @@ public sealed class PlayerService : IDisposable
     {
         if (track == null) return;
 
-        // If same track and was paused → resume
-        if (_state.CurrentTrack?.FilePath == track.FilePath && !_state.IsPlaying)
+        // If same track → toggle play/pause
+        if (_state.CurrentTrack?.FilePath == track.FilePath)
         {
-            Resume();
+            TogglePlayPause();
             return;
         }
 
@@ -153,6 +153,15 @@ public sealed class PlayerService : IDisposable
         _state.IsPlaying = true;
         StartPositionTimer();
         OnStateChanged();
+    }
+
+    /// <summary>Toggles between play and pause.</summary>
+    public void TogglePlayPause()
+    {
+        if (_state.IsPlaying)
+            Pause();
+        else
+            Resume();
     }
 
     public void Next() => Skip(+1);

@@ -1,42 +1,111 @@
-@* 10+ band equalizer panel (PRD §2.1). Stub UI; slider changes route to EqualizerService. *@
+@* 10-band equalizer panel (PRD §2.1). Connected to EqualizerService and EqPresetRepository. *@
+@using MediaMusic.Audio
+@using MediaMusic.Data.Models
+@using MediaMusic.Data.Repositories
+@inject EqualizerService Equalizer
+@inject PlayerService Player
+@inject EqPresetRepository PresetRepo
 
-<div class="flex flex-col gap-4 p-4">
+<div class="flex flex-col gap-4 p-4 text-on-surface">
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">均衡器</h2>
-        <select class="bg-surface-variant rounded px-2 py-1 text-sm" @onchange="OnPreset">
-            <option value="0">— 预设 —</option>
-            @foreach (var f in Frequencies)
+        <select class="bg-surface-variant text-on-surface rounded-lg px-3 py-1.5 text-xs border border-on-surface/10 focus:outline-none" 
+                value="@_selectedPresetId" @onchange="OnPresetChange">
+            <option value="0">— 自定义 / 重置 —</option>
+            @foreach (var p in _presets)
             {
-                <option value="@f">@f Hz</option>
+                <option value="@p.Id">@p.Name</option>
             }
         </select>
     </div>
 
-    <div class="flex items-end justify-between gap-2 h-48">
-        @foreach (var f in Frequencies)
+    <div class="flex items-end justify-between gap-2 h-48 py-2">
+        @for (int i = 0; i < Frequencies.Length; i++)
         {
-            <div class="flex flex-1 flex-col items-center gap-2">
-                <input type="range" min="-12" max="12" step="0.5" value="0"
-                       class="h-32 accent-accent" data-freq="@f" @onchange="OnBand" />
-                <span class="text-[10px] text-on-surface/60">@FormatFreq(f)</span>
+            var index = i;
+            var freq = Frequencies[index];
+            var gain = _bandGains[index];
+            <div class="flex flex-1 flex-col items-center gap-2 h-full justify-between">
+                <span class="text-[10px] font-mono text-accent">@(gain > 0 ? $"+{gain:F0}" : $"{gain:F0}")dB</span>
+                <input type="range" min="-12" max="12" step="0.5" value="@gain"
+                       class="h-32 accent-accent cursor-pointer" data-freq="@freq"
+                       @oninput="(e) => OnBandInput(index, e)" />
+                <span class="text-[10px] text-on-surface/60 font-medium">@FormatFreq(freq)</span>
             </div>
         }
     </div>
-    <p class="text-xs text-on-surface/40">范围 −12dB ~ +12dB · 预设与回写待接入 EqualizerService</p>
+    <p class="text-xs text-on-surface/40">范围 −12dB ~ +12dB · 已实时作用于音频通道</p>
 </div>
 
 @code {
-    // 10 bands (PRD requires 10+). Matches EqualizerService.DefaultFrequencies.
     private static readonly double[] Frequencies = EqualizerService.DefaultFrequencies;
+    private double[] _bandGains = new double[10];
+    private List<EqPreset> _presets = new();
+    private long _selectedPresetId = 0;
 
-    private void OnBand(ChangeEventArgs e)
+    protected override async Task OnInitializedAsync()
     {
-        // TODO: parse gain + data-freq, call EqualizerService.ApplyBands(...).
+        try
+        {
+            var all = await PresetRepo.GetAllAsync();
+            _presets = all.ToList();
+        }
+        catch { }
     }
-    private void OnPreset(ChangeEventArgs e)
+
+    private void OnBandInput(int index, ChangeEventArgs e)
     {
-        // TODO: load preset from EqPresetRepository and apply.
+        if (double.TryParse(e.Value?.ToString(), out var val))
+        {
+            _bandGains[index] = val;
+            _selectedPresetId = 0; // custom gain override
+            ApplyCurrentBands();
+        }
+    }
+
+    private async Task OnPresetChange(ChangeEventArgs e)
+    {
+        if (long.TryParse(e.Value?.ToString(), out var presetId))
+        {
+            _selectedPresetId = presetId;
+            if (presetId > 0)
+            {
+                var channel = Player.ActiveChannelHandle;
+                if (channel != 0)
+                {
+                    await Equalizer.ApplyPresetAsync(channel, presetId);
+                }
+                var bands = await PresetRepo.LoadBandsAsync(presetId);
+                var bandList = bands.ToList();
+                if (bandList.Count == Frequencies.Length)
+                {
+                    for (int i = 0; i < Frequencies.Length; i++)
+                    {
+                        _bandGains[i] = bandList[i].Gain;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < _bandGains.Length; i++)
+                {
+                    _bandGains[i] = 0;
+                }
+                ApplyCurrentBands();
+            }
+        }
+    }
+
+    private void ApplyCurrentBands()
+    {
+        var channel = Player.ActiveChannelHandle;
+        if (channel != 0)
+        {
+            var bands = Frequencies.Select((f, idx) => new EqBand { Frequency = f, Gain = _bandGains[idx] });
+            Equalizer.ApplyBands(channel, bands);
+        }
     }
 
     private static string FormatFreq(double f) => f >= 1000 ? $"{f / 1000:F0}k" : f.ToString("F0");
 }
+

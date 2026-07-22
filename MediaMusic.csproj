@@ -13,6 +13,7 @@
     <Company>Yunxi</Company>
     <NoWarn>NU1903;CA1416</NoWarn>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
 
   <!-- Exclude scratch files from build -->

@@ -1,64 +1,227 @@
 @page "/metadata"
+@page "/metadata/{TrackId:long}"
 @using MediaMusic.Data.Models
+@using MediaMusic.Data.Repositories
+@using MediaMusic.Library
+@using MediaMusic.Audio
 @inject LibraryService Library
+@inject TrackRepository TrackRepo
+@inject PlayerService Player
 @inject NavigationManager Navigation
 
 <PageTitle>元数据编辑 — MediaMusic</PageTitle>
 
-<div class="flex h-full flex-col">
-    <div class="flex items-center justify-between border-b border-on-surface/10 px-4 py-3">
-        <h1 class="text-lg font-semibold">元数据编辑</h1>
+<div class="flex h-full flex-col bg-background text-on-surface">
+    <div class="flex items-center justify-between border-b border-on-surface/10 px-6 py-4">
+        <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold">元数据编辑</h1>
+            @if (_currentTrack != null)
+            {
+                <span class="text-xs text-on-surface/50 font-mono">@_currentTrack.FilePath</span>
+            }
+        </div>
         <div class="flex gap-2 text-xs">
-            <a class="hover:text-accent" @onclick='() => Navigation.NavigateTo("/")' @onclick:preventDefault style="cursor: pointer;">返回</a>
+            <button class="px-3 py-1.5 rounded-lg border border-on-surface/20 hover:bg-surface-variant transition-colors" @onclick="GoBack">
+                返回
+            </button>
         </div>
     </div>
 
     <div class="flex-1 overflow-auto p-6 max-w-2xl mx-auto w-full">
-        <div class="flex gap-6">
-            <CoverArt Size="160" />
-            <button class="self-end text-xs px-3 py-1 rounded bg-surface-variant">选择封面…</button>
-        </div>
-
-        <div class="mt-6 grid grid-cols-1 gap-4">
-            <label class="text-sm">
-                <span class="block text-on-surface/60 mb-1">歌名</span>
-                <input @bind="_title" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
-            </label>
-            <label class="text-sm">
-                <span class="block text-on-surface/60 mb-1">艺术家</span>
-                <input @bind="_artist" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
-            </label>
-            <label class="text-sm">
-                <span class="block text-on-surface/60 mb-1">专辑</span>
-                <input @bind="_album" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
-            </label>
-            <div class="grid grid-cols-2 gap-4">
-                <label class="text-sm">
-                    <span class="block text-on-surface/60 mb-1">年份</span>
-                    <input @bind="_year" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
-                </label>
-                <label class="text-sm">
-                    <span class="block text-on-surface/60 mb-1">音轨号</span>
-                    <input @bind="_trackNo" class="w-full rounded bg-surface-variant px-3 py-1.5 border border-on-surface/10" />
-                </label>
+        @if (_currentTrack == null)
+        {
+            <div class="flex flex-col items-center justify-center h-64 text-on-surface/50">
+                <p class="text-sm">未指定有效的音轨。</p>
+                <button class="mt-4 px-4 py-2 text-xs rounded-lg bg-surface-variant text-on-surface hover:bg-surface transition-colors" @onclick="GoBack">
+                    返回上一页
+                </button>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="flex gap-6 items-start">
+                <div class="relative group">
+                    @if (!string.IsNullOrEmpty(_coverPreviewUrl))
+                    {
+                        <img src="@_coverPreviewUrl" alt="Cover" class="w-40 h-40 object-cover rounded-xl shadow-lg border border-on-surface/10" />
+                    }
+                    else if (!string.IsNullOrEmpty(_currentTrack.CoverPath))
+                    {
+                        <img src="@_currentTrack.CoverPath" alt="Cover" class="w-40 h-40 object-cover rounded-xl shadow-lg border border-on-surface/10" />
+                    }
+                    else
+                    {
+                        <CoverArt Track="_currentTrack" Size="160" />
+                    }
+                </div>
+                <div class="flex flex-col gap-3 self-end">
+                    <button class="text-xs px-4 py-2 rounded-xl bg-surface-variant hover:bg-on-surface/10 transition-colors border border-on-surface/10 font-medium" @onclick="SelectCover">
+                        选择封面图片…
+                    </button>
+                    @if (_coverBytes != null)
+                    {
+                        <span class="text-[11px] text-accent">已选择新封面图片</span>
+                    }
+                </div>
+            </div>
 
-        <div class="mt-6 flex justify-end gap-3">
-            <button class="px-4 py-1.5 rounded bg-surface-variant text-sm">取消</button>
-            <button class="px-4 py-1.5 rounded bg-accent text-on-accent text-sm" @onclick="Save">保存并回写</button>
-        </div>
-        <p class="mt-3 text-xs text-on-surface/40">修改将同步回写音频文件头与 SQLite 数据库（PRD §2.2）。</p>
+            <div class="mt-6 grid grid-cols-1 gap-4">
+                <label class="text-sm">
+                    <span class="block text-on-surface/60 mb-1 font-medium">歌名 (Title)</span>
+                    <input @bind="_title" class="w-full rounded-xl bg-surface-variant px-3.5 py-2 border border-on-surface/10 focus:outline-none focus:border-accent transition-colors" />
+                </label>
+                <label class="text-sm">
+                    <span class="block text-on-surface/60 mb-1 font-medium">艺术家 (Artist)</span>
+                    <input @bind="_artist" class="w-full rounded-xl bg-surface-variant px-3.5 py-2 border border-on-surface/10 focus:outline-none focus:border-accent transition-colors" />
+                </label>
+                <label class="text-sm">
+                    <span class="block text-on-surface/60 mb-1 font-medium">专辑 (Album)</span>
+                    <input @bind="_album" class="w-full rounded-xl bg-surface-variant px-3.5 py-2 border border-on-surface/10 focus:outline-none focus:border-accent transition-colors" />
+                </label>
+                <label class="text-sm">
+                    <span class="block text-on-surface/60 mb-1 font-medium">流派 (Genre)</span>
+                    <input @bind="_genre" class="w-full rounded-xl bg-surface-variant px-3.5 py-2 border border-on-surface/10 focus:outline-none focus:border-accent transition-colors" />
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="text-sm">
+                        <span class="block text-on-surface/60 mb-1 font-medium">年份 (Year)</span>
+                        <input @bind="_year" type="number" class="w-full rounded-xl bg-surface-variant px-3.5 py-2 border border-on-surface/10 focus:outline-none focus:border-accent transition-colors" />
+                    </label>
+                    <label class="text-sm">
+                        <span class="block text-on-surface/60 mb-1 font-medium">音轨号 (Track No.)</span>
+                        <input @bind="_trackNo" type="number" class="w-full rounded-xl bg-surface-variant px-3.5 py-2 border border-on-surface/10 focus:outline-none focus:border-accent transition-colors" />
+                    </label>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_statusMessage))
+            {
+                <div class="mt-4 p-3 rounded-xl bg-accent/10 border border-accent/20 text-accent text-xs font-medium">
+                    @_statusMessage
+                </div>
+            }
+
+            <div class="mt-8 flex justify-end gap-3">
+                <button class="px-5 py-2 rounded-xl bg-surface-variant hover:bg-on-surface/10 text-sm font-medium transition-colors" @onclick="GoBack">
+                    取消
+                </button>
+                <button class="px-5 py-2 rounded-xl bg-accent text-on-accent text-sm font-semibold hover:brightness-110 transition-all shadow-lg shadow-accent/20" 
+                        disabled="@_isSaving" @onclick="Save">
+                    @(_isSaving ? "保存中…" : "保存并回写")
+                </button>
+            </div>
+            <p class="mt-4 text-xs text-on-surface/40">修改将同步回写音频文件头与 SQLite 数据库（PRD §2.2）。</p>
+        }
     </div>
 </div>
 
 @code {
-    private string? _title, _artist, _album;
+    [Parameter] public long? TrackId { get; set; }
+
+    private Track? _currentTrack;
+    private string? _title, _artist, _album, _genre;
     private string? _year, _trackNo;
+    private byte[]? _coverBytes;
+    private string? _coverPreviewUrl;
+    private bool _isSaving;
+    private string? _statusMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TrackId.HasValue && TrackId.Value > 0)
+        {
+            _currentTrack = await TrackRepo.GetByIdAsync(TrackId.Value);
+        }
+
+        if (_currentTrack == null && Player.State.CurrentTrack != null)
+        {
+            _currentTrack = Player.State.CurrentTrack;
+        }
+
+        if (_currentTrack == null)
+        {
+            var tracks = await TrackRepo.SearchAsync(null, null, null, null);
+            _currentTrack = tracks.FirstOrDefault();
+        }
+
+        if (_currentTrack != null)
+        {
+            _title = _currentTrack.Title;
+            _artist = _currentTrack.ArtistName;
+            _album = _currentTrack.AlbumTitle;
+            _genre = _currentTrack.GenreName;
+            _year = _currentTrack.Year?.ToString();
+            _trackNo = _currentTrack.TrackNo?.ToString();
+        }
+    }
+
+    private void SelectCover()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        try
+        {
+            using var dialog = new System.Windows.Forms.OpenFileDialog
+            {
+                Title = "选择专辑封面图片",
+                Filter = "图片文件 (*.jpg;*.jpeg;*.png;*.webp)|*.jpg;*.jpeg;*.png;*.webp|所有文件 (*.*)|*.*"
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                _coverBytes = System.IO.File.ReadAllBytes(dialog.FileName);
+                var base64 = Convert.ToBase64String(_coverBytes);
+                var ext = System.IO.Path.GetExtension(dialog.FileName).TrimStart('.').ToLower();
+                if (ext == "jpg") ext = "jpeg";
+                _coverPreviewUrl = $"data:image/{ext};base64,{base64}";
+                _statusMessage = "已加载图片预览";
+            }
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"选择图片失败: {ex.Message}";
+        }
+    }
 
     private async Task Save()
     {
-        // TODO: build Track from fields + cover image, call LibraryService.EditMetadataAsync(...).
-        await Task.CompletedTask;
+        if (_currentTrack == null || _isSaving) return;
+
+        _isSaving = true;
+        _statusMessage = null;
+
+        try
+        {
+            _currentTrack.Title = _title?.Trim() ?? _currentTrack.Title;
+            _currentTrack.ArtistName = _artist?.Trim();
+            _currentTrack.AlbumTitle = _album?.Trim();
+            _currentTrack.GenreName = _genre?.Trim();
+
+            if (int.TryParse(_year, out var y)) _currentTrack.Year = y;
+            else _currentTrack.Year = null;
+
+            if (int.TryParse(_trackNo, out var t)) _currentTrack.TrackNo = t;
+            else _currentTrack.TrackNo = null;
+
+            var updatedTrack = await Library.EditMetadataAsync(_currentTrack, _coverBytes, null);
+            _currentTrack = updatedTrack;
+
+            _statusMessage = "元数据已成功回写至文件并同步到数据库！";
+            _coverBytes = null;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"保存失败: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
     }
 }
+

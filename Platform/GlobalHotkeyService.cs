@@ -147,9 +147,9 @@ public sealed partial class GlobalHotkeyService : IDisposable
         {
             var kbd    = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
             var vk     = (int)kbd.vkCode;
-            bool ctrl  = (GetKeyState(0x11) & 0x8000) != 0; // VK_CONTROL
-            bool alt   = (GetKeyState(0x12) & 0x8000) != 0; // VK_MENU
-            bool shift = (GetKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
+            bool ctrl  = (GetAsyncKeyState(0x11) & 0x8000) != 0; // VK_CONTROL
+            bool alt   = (GetAsyncKeyState(0x12) & 0x8000) != 0; // VK_MENU
+            bool shift = (GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
 
             foreach (var (actionId, binding) in _bindings)
             {
@@ -169,7 +169,7 @@ public sealed partial class GlobalHotkeyService : IDisposable
     }
 
     [DllImport("user32.dll")]
-    private static extern short GetKeyState(int vKey);
+    private static extern short GetAsyncKeyState(int vKey);
 
     // ── Binding parsing ───────────────────────────────────────────────────────
 
